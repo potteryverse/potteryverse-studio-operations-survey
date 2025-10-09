@@ -54,7 +54,12 @@ def get_all_columns():
         "response_id",
         "schema_version",
         "submitted_at",
-        
+
+        # >>> INSERTED to match Sheet header <<<
+        "country",
+        "currency",
+        "uses_metric",
+
         # Section 1: Studio Profile
         "studio_name",
         "location_state",
@@ -62,6 +67,9 @@ def get_all_columns():
         "area_type",
         "metro_population",
         "space_sqft",
+        # >>> INSERTED to match Sheet header <<<
+        "space_sqm",
+
         "years_operating_years",
         "years_operating_months",
         "years_operating_total_months",
@@ -71,8 +79,8 @@ def get_all_columns():
         "time_to_members_months",
         "peak_occupancy",
         "avg_occupancy",
-        
-        # Section 2: Equipment Inventory
+
+        # …(rest unchanged; your list already matches the header order)…
         "total_wheels",
         "wheel_inventory",
         "wheel_preference",
@@ -92,8 +100,7 @@ def get_all_columns():
         "num_kilns",
         "kilns",
         "additional_equipment",
-        
-        # Section 3: Studio Access & Operations
+        # …keep the remainder exactly as you had it…
         "access_model",
         "hours_per_day",
         "days_per_week",
@@ -120,12 +127,10 @@ def get_all_columns():
         "classes_per_month",
         "class_sessions_per_month",
         "instructor_flat_rate",
-        "instructor_revenue_percentage", 
+        "instructor_revenue_percentage",
         "instructor_hourly_rate",
         "equipment_maintenance",
         "building_maintenance",
-
-        # Section 4: Pricing Structure
         "tier_structure",
         "tier1_price",
         "tier2_price",
@@ -161,23 +166,21 @@ def get_all_columns():
         "class_price",
         "class_weeks",
         "class_enrollment",
-        "class_format",  # ADDED - was missing
+        "class_format",
         "offers_workshops",
         "workshop_price",
         "workshop_attendance",
         "offers_events",
-        "event_types",              # NEW
+        "event_types",
         "event_price",
-        "event_attendance",          # NEW
+        "event_attendance",
         "events_per_month",
-        "event_pricing_model",       # NEW
-        "flat_event_rate",           # NEW
-        "event_piece_price",         # NEW
-        "event_studio_fee",          # NEW
-        
-        # Section 5: Member Experience
+        "event_pricing_model",
+        "flat_event_rate",
+        "event_piece_price",
+        "event_studio_fee",
         "member_pcts",
-        "hobbyist_pct",  # ADDED - individual percentages
+        "hobbyist_pct",
         "regular_pct",
         "production_pct",
         "seasonal_pct",
@@ -200,8 +203,6 @@ def get_all_columns():
         "has_trial_offer",
         "trial_offer_type",
         "trial_conversion_rate",
-        
-        # Section 6: Operating Costs
         "rent",
         "utilities_included",
         "electricity",
@@ -218,10 +219,8 @@ def get_all_columns():
         "zoning_other",
         "rent_per_sqft",
         "lease_term_years",
-        
-        # Section 7: Revenue & Financial Performance
         "revenue_pcts",
-        "rev_membership",  # ADDED - individual revenue percentages
+        "rev_membership",
         "rev_clay",
         "rev_firing",
         "rev_classes",
@@ -236,8 +235,6 @@ def get_all_columns():
         "funding_sources",
         "funding_sources_other",
         "owner_hours_per_week",
-        
-        # Section 8: Capacity, Market & Competition
         "capacity_utilization",
         "has_waitlist",
         "waitlist_length",
@@ -249,14 +246,10 @@ def get_all_columns():
         "market_population",
         "kiln_utilization",
         "competitive_advantages",
-        
-        # Section 9: Growth Plans & Future
         "plans_expand_space",
         "plans_add_equipment",
         "plans_raise_prices",
         "target_member_count",
-        
-        # Section 10: Challenges & Risk Management
         "studio_status",
         "struggle_areas",
         "struggle_other",
@@ -269,16 +262,12 @@ def get_all_columns():
         "liability_coverage",
         "class_fill_rate",
         "instructor_compensation_model",
-        
-        # Section 11: Survey Feedback
         "survey_feedback",
         "suggested_questions",
         "topics_interest",
         "followup",
         "followup_email",
-        
-        # Internal tracking (not displayed to users)
-        "_sheet_row"
+        "_sheet_row",
     ]
 
 # Helpers (place near top of file)
