@@ -190,6 +190,22 @@ def load_responses():
 
         df = pd.DataFrame(normalized, columns=header)
         
+        # --- Normalize mixed-type columns to fix Arrow serialization ---
+        
+        def _jsonify_if_collection(x):
+            """Convert lists/dicts into JSON strings for stable serialization."""
+            if isinstance(x, (list, dict)):
+                try:
+                    return json.dumps(x)
+                except Exception:
+                    return str(x)
+            return x
+        
+        # Normalize known multi-type columns before caching/display
+        for col in ["kilns", "wheel_inventory", "included_amenities", "event_types"]:
+            if col in df.columns:
+                df[col] = df[col].map(_jsonify_if_collection)
+        
         # === DEDUPLICATION LOGIC ===
         
         # Track original count
