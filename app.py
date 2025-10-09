@@ -1558,103 +1558,6 @@ def render_section_4_pricing():
         clay_types = st.number_input("Number of clay options", 1, 20, value=data.get('clay_types', 1), step=1)
         data['clay_types'] = clay_types
     
-    # st.subheader("Classes & Events")
-    
-    # offers_classes = st.checkbox("We offer classes", value=data.get('offers_classes', False))
-    # data['offers_classes'] = offers_classes
-    
-    # if offers_classes:
-    #     col1, col2 = st.columns(2)
-    #     with col1:
-    #         class_price = st.number_input(
-    #             "Class price ($)", 
-    #             0, 2000, 
-    #             value=data.get('class_price', 25),
-    #             step=25
-    #         )
-    #         data['class_price'] = class_price
-            
-    #         class_weeks = st.number_input(
-    #             "Length (weeks)", 
-    #             1, 52, 
-    #             value=data.get('class_weeks', 1),
-    #             step=1
-    #         )
-    #         data['class_weeks'] = class_weeks
-    #     with col2:
-    #         class_enrollment = st.number_input(
-    #             "Typical enrollment", 
-    #             1, 50, 
-    #             value=data.get('class_enrollment', 1),
-    #             step=1
-    #         )
-    #         data['class_enrollment'] = class_enrollment
-    
-    # if offers_classes:
-    #     st.write("**Class economics:**")
-        
-    #     col1, col2 = st.columns(2)
-    #     with col1:
-    #         class_sessions_per_month = st.number_input(
-    #             "Total class sessions per month",
-    #             min_value=0, max_value=200, step=1,
-    #             value=data.get('class_sessions_per_month', 0),
-    #             help="Total number of class meetings held per month (e.g., if you run 3 weekly classes, that's ~12 sessions/month)"
-    #         )
-    #         data['class_sessions_per_month'] = class_sessions_per_month
-
-        
-    #     with col2:
-    #         class_format_options = ["One-time workshop", "Multi-week series (4-8 weeks)", 
-    #                                "Ongoing/drop-in", "Mix"]
-    #         _saved_format = data.get('class_format', '')
-    #         try:
-    #             _format_index = class_format_options.index(_saved_format) if _saved_format else 1
-    #         except ValueError:
-    #             _format_index = 1
-    #         class_format = st.radio(
-    #             "Typical class format",
-    #             class_format_options,
-    #             index=_format_index
-    #         )
-    #         data['class_format'] = class_format
-        
-    #     st.write("**Instructor compensation:**")
-    #     instructor_comp_options = [
-    #         "Flat rate per session",
-    #         "Percentage of revenue",
-    #         "Hourly rate",
-    #         "Owner teaches (no separate cost)",
-    #         "Other"
-    #     ]
-    #     instructor_comp = st.selectbox(
-    #         "How do you compensate instructors?",
-    #         instructor_comp_options,
-    #         index=instructor_comp_options.index(data.get('instructor_compensation_model', 'Flat rate per session')) 
-    #               if data.get('instructor_compensation_model') in instructor_comp_options else 0
-    #     )
-    #     data['instructor_compensation_model'] = instructor_comp
-        
-    #     if instructor_comp == "Flat rate per session":
-    #         flat_rate = st.number_input(
-    #             "Rate per session ($)",
-    #             0, 1000, data.get('instructor_flat_rate', 0), 25,
-    #             help="What you pay the instructor per class session"
-    #         )
-    #         data['instructor_flat_rate'] = flat_rate
-    #     elif instructor_comp == "Percentage of revenue":
-    #         pct = st.number_input(
-    #             "Instructor percentage (%)",
-    #             0, 100, data.get('instructor_revenue_percentage', 0), 5
-    #         )
-    #         data['instructor_revenue_percentage'] = pct
-    #     elif instructor_comp == "Hourly rate":
-    #         hourly = st.number_input(
-    #             "Hourly rate ($)",
-    #             0, 200, data.get('instructor_hourly_rate', 0), 5
-    #         )
-    #         data['instructor_hourly_rate'] = hourly
-            
     st.subheader("Classes")
 
     offers_classes = st.checkbox("We offer classes", value=data.get('offers_classes', False))
@@ -1756,83 +1659,120 @@ def render_section_4_pricing():
     st.caption("Paint-your-own-pottery, private parties, team building, etc.")
     
     offers_events = st.checkbox(
-        "We offer events/parties", 
-        value=data.get('offers_events', False),
-        help="Private events, PYOP sessions, team building, birthday parties, etc."
+        "We offer events/parties",
+        value=bool(data.get("offers_events", False)),
+        help="Private events, PYOP sessions, team building, birthday parties, etc.",
     )
-    data['offers_events'] = offers_events
+    data["offers_events"] = offers_events
+    
+    # --- Always ensure all keys exist with consistent types ---
+    data.setdefault("event_types", [])               # list
+    data.setdefault("event_price", 0)                # number
+    data.setdefault("event_attendance", 0)           # number
+    data.setdefault("events_per_month", 0)           # number
+    data.setdefault("event_pricing_model", "Per person")
+    data.setdefault("flat_event_rate", 0)            # number
+    data.setdefault("event_piece_price", 0)          # number
+    data.setdefault("event_studio_fee", 0)           # number
     
     if offers_events:
         col1, col2 = st.columns(2)
         with col1:
             event_type = st.multiselect(
                 "Types of events offered:",
-                ["Paint-your-own-pottery (PYOP)",
-                 "Private parties (birthdays, etc.)",
-                 "Team building/corporate",
-                 "Date nights",
-                 "Kids parties",
-                 "Other"],
-                default=data.get('event_types', [])
+                [
+                    "Paint-your-own-pottery (PYOP)",
+                    "Private parties (birthdays, etc.)",
+                    "Team building/corporate",
+                    "Date nights",
+                    "Kids parties",
+                    "Other",
+                ],
+                default=data.get("event_types", []),
             )
-            data['event_types'] = event_type
-            
+            data["event_types"] = event_type
+    
             event_price = st.number_input(
                 "Typical event price per person ($)",
-                min_value=0, max_value=500, step=5,
-                value=data.get('event_price', 25),
-                help="Average price per attendee"
+                min_value=0,
+                max_value=500,
+                step=5,
+                value=int(data.get("event_price", 25)),
+                help="Average price per attendee",
             )
-            data['event_price'] = event_price
-        
+            data["event_price"] = event_price
+    
         with col2:
             events_per_month = st.number_input(
                 "Events per month (average)",
-                min_value=0, max_value=100, step=1,
-                value=data.get('events_per_month', 0),
-                help="How many events/parties do you host monthly?"
+                min_value=0,
+                max_value=100,
+                step=1,
+                value=int(data.get("events_per_month", 0)),
+                help="How many events/parties do you host monthly?",
             )
-            data['events_per_month'] = events_per_month
-            
+            data["events_per_month"] = events_per_month
+    
             event_attendance = st.number_input(
                 "Avg attendance per event",
-                min_value=0, max_value=100, step=1,
-                value=data.get('event_attendance', 10),
-                help="Typical number of people per event"
+                min_value=0,
+                max_value=100,
+                step=1,
+                value=int(data.get("event_attendance", 10)),
+                help="Typical number of people per event",
             )
-            data['event_attendance'] = event_attendance
-        
+            data["event_attendance"] = event_attendance
+    
         event_pricing_model = st.radio(
             "Event pricing model:",
             ["Per person", "Flat rate (full buyout)", "Per piece + studio fee", "Other"],
             index=["Per person", "Flat rate (full buyout)", "Per piece + studio fee", "Other"].index(
-                data.get('event_pricing_model', 'Per person')
-            ) if data.get('event_pricing_model') in ["Per person", "Flat rate (full buyout)", "Per piece + studio fee", "Other"] else 0
+                data.get("event_pricing_model", "Per person")
+            ),
         )
-        data['event_pricing_model'] = event_pricing_model
-        
+        data["event_pricing_model"] = event_pricing_model
+    
         if event_pricing_model == "Flat rate (full buyout)":
             flat_event_rate = st.number_input(
                 "Flat rate for full event ($)",
-                min_value=0, max_value=5000, step=50,
-                value=data.get('flat_event_rate', 200)
+                min_value=0,
+                max_value=5000,
+                step=50,
+                value=int(data.get("flat_event_rate", 200)),
             )
-            data['flat_event_rate'] = flat_event_rate
+            data["flat_event_rate"] = flat_event_rate
+    
         elif event_pricing_model == "Per piece + studio fee":
             piece_price = st.number_input(
                 "Price per piece ($)",
-                min_value=0, max_value=100, step=5,
-                value=data.get('event_piece_price', 15)
+                min_value=0,
+                max_value=100,
+                step=5,
+                value=int(data.get("event_piece_price", 15)),
             )
-            data['event_piece_price'] = piece_price
-            
+            data["event_piece_price"] = piece_price
+    
             studio_fee = st.number_input(
                 "Studio/setup fee ($)",
-                min_value=0, max_value=500, step=25,
-                value=data.get('event_studio_fee', 50)
+                min_value=0,
+                max_value=500,
+                step=25,
+                value=int(data.get("event_studio_fee", 50)),
             )
-            data['event_studio_fee'] = studio_fee
-
+            data["event_studio_fee"] = studio_fee
+    
+    else:
+        # If unchecked, keep types stable but empty out values
+        data["event_types"] = []
+        data["event_price"] = 0
+        data["event_attendance"] = 0
+        data["events_per_month"] = 0
+        data["event_pricing_model"] = "Per person"
+        data["flat_event_rate"] = 0
+        data["event_piece_price"] = 0
+        data["event_studio_fee"] = 0
+        
+        
 def render_section_5_member_experience():
     st.header("5. Member Experience")
     st.caption("Understanding who your members are and how they use the studio")
