@@ -14,6 +14,25 @@ import json
 from results_free_enhanced import show_enhanced_charts
 from results_free import show_free_charts, derive_kpis
 
+
+import json
+
+# --- HuggingFace secrets compatibility helpers ---
+def _get_gcp_creds_info():
+    """Return service account credentials dict from either Streamlit or HF secrets."""
+    if "gcp_service_account" in st.secrets:
+        return dict(st.secrets["gcp_service_account"])
+    if "GCP_SERVICE_ACCOUNT_JSON" in st.secrets:
+        raw = st.secrets["GCP_SERVICE_ACCOUNT_JSON"]
+        return json.loads(raw) if isinstance(raw, str) else dict(raw)
+    raise KeyError("Missing GCP service account secret.")
+
+def _get_sheet_id():
+    sid = st.secrets.get("sheet_id") or st.secrets.get("SHEET_ID")
+    if not sid:
+        raise KeyError("Missing Google Sheet ID secret.")
+    return sid
+
 @st.cache_data(ttl=900)  # Cache for 15 minutes
 def load_responses():
     """
@@ -26,11 +45,11 @@ def load_responses():
     """
     try:
         credentials = service_account.Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"],
+            _get_gcp_creds_info(),
             scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
         )
         service = build('sheets', 'v4', credentials=credentials)
-        sheet_id = st.secrets["sheet_id"]
+        sheet_id = _get_sheet_id()
 
         result = service.spreadsheets().values().get(
             spreadsheetId=sheet_id,

@@ -1,24 +1,8 @@
-# Q24 enhanced:#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Enhanced free tier results visualizations with individual studio benchmarking
-
-INTEGRATION INSTRUCTIONS:
-Add this to results.py:
-
-    from results_free_enhanced import show_enhanced_charts
-    
-    def render_results():
-        # ... existing code to load df ...
-        
-        # Add tabs for different views
-        tab1, tab2 = st.tabs(["📊 Overview", "🔍 Deep Dive"])
-        
-        with tab1:
-            show_free_charts(df)  # Your existing overview
-        
-        with tab2:
-            show_enhanced_charts(df)  # New enhanced analysis
+REORGANIZED: Complete Enhanced Free Tier Results Visualizations
+Logical grouping with sequential question numbering Q1-Q61
 """
 
 import streamlit as st
@@ -27,57 +11,15 @@ import numpy as np
 import altair as alt
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import json
 import ast
 import re
 
-def _parse_jsonish(x):
-    """Best-effort parser for survey cells that may contain JSON, Python-literals,
-    or comma-separated strings. Returns lists/dicts when possible, else the original.
-    """
-    if x is None:
-        return None
-    if isinstance(x, (list, dict)):
-        return x
-    if isinstance(x, str):
-        s = x.strip()
-        if not s:
-            return None
-        s = s.replace("\u200b", "").replace("\ufeff", "")
-        try:
-            return json.loads(s)
-        except json.JSONDecodeError:
-            pass
-        try:
-            val = ast.literal_eval(s)
-            if isinstance(val, (list, dict, tuple, set)):
-                return list(val) if not isinstance(val, dict) else val
-        except Exception:
-            pass
-        if ("," in s) and not re.search(r"[\[\]\{\}]", s):
-            return [part.strip() for part in s.split(",") if part.strip()]
-        chunks = re.findall(r"(\[[^\]]*\]|\{[^}]*\})", s)
-        if len(chunks) > 1:
-            out = []
-            for ch in chunks:
-                try:
-                    v = json.loads(ch)
-                    out.extend(v if isinstance(v, list) else [v])
-                except Exception:
-                    continue
-            if out:
-                return out
-        return s
-    return x
-
 
 def show_enhanced_charts(df: pd.DataFrame):
-    """
-    Enhanced visualizations with individual studio highlighting
-    """
+    """Complete enhanced visualizations - reorganized for logical flow"""
     
-    st.header("🔍 Deep Dive Analysis")
+    st.header("🔍 Comprehensive Studio Analysis")
     st.caption("Question-driven insights with individual studio benchmarking")
     
     # === STUDIO SELECTOR ===
@@ -87,16 +29,13 @@ def show_enhanced_charts(df: pd.DataFrame):
     col1, col2, col3 = st.columns([2, 1, 1])
     
     with col1:
-        # Get list of studio IDs (4-char codes)
         studio_ids = ["View All Studios (No Highlighting)"] + sorted(df['studio_name'].unique().tolist())
-        
         selected_studio = st.selectbox(
             "Select your 4-character studio ID:",
             options=studio_ids,
-            help="Your studio ID was provided when you submitted the survey. Selecting it will highlight your position on all charts below."
+            help="Your studio ID was provided when you submitted the survey."
         )
     
-    # Determine if we're highlighting a specific studio
     highlight_studio = None if selected_studio == "View All Studios (No Highlighting)" else selected_studio
     
     with col2:
@@ -109,430 +48,376 @@ def show_enhanced_charts(df: pd.DataFrame):
             st.metric("Your Space", f"{int(studio_data['space_sqft'])} sq ft")
     
     if highlight_studio:
-        st.success(f"✓ Viewing data for studio **{highlight_studio}** (highlighted in red on charts below)")
+        st.success(f"✓ Viewing data for studio **{highlight_studio}**")
     else:
         st.info("💡 Select your studio ID above to see your position on all charts")
     
     st.markdown("---")
     
-    # === ANALYSIS SECTIONS ===
+    # ===================================================================
+    # PART 1: STUDIO BASICS (Primary Data)
+    # ===================================================================
+    
+    st.title("📊 PART 1: Studio Basics")
+    
+    show_physical_studio(df, highlight_studio)
+    st.markdown("---")
+    
+    show_equipment_inventory(df, highlight_studio)
+    st.markdown("---")
+    
+    show_membership_scale(df, highlight_studio)
+    st.markdown("---")
+    
+    # ===================================================================
+    # PART 2: SPACE & CAPACITY EFFICIENCY
+    # ===================================================================
+    
+    st.title("📐 PART 2: Space & Capacity Efficiency")
+    
     show_space_efficiency(df, highlight_studio)
     st.markdown("---")
     
-    show_pricing_analysis(df, highlight_studio)
+    # ===================================================================
+    # PART 3: PRICING & REVENUE
+    # ===================================================================
+    
+    st.title("💰 PART 3: Pricing & Revenue")
+    
+    show_membership_pricing(df, highlight_studio)
     st.markdown("---")
     
-    show_equipment_analysis(df, highlight_studio)
+    show_materials_services_pricing(df, highlight_studio)
+    st.markdown("---")
+    
+    show_revenue_mix(df, highlight_studio)
+    st.markdown("---")
+    
+    # ===================================================================
+    # PART 4: COSTS & PROFITABILITY
+    # ===================================================================
+    
+    st.title("💵 PART 4: Costs & Profitability")
+    
+    show_operating_costs(df, highlight_studio)
     st.markdown("---")
     
     show_financial_performance(df, highlight_studio)
     st.markdown("---")
     
-    show_member_behavior(df, highlight_studio)
+    # ===================================================================
+    # PART 5: OPERATIONS
+    # ===================================================================
+    
+    st.title("⚙️ PART 5: Operations")
+    
+    show_access_staffing(df, highlight_studio)
     st.markdown("---")
     
-    show_events_analysis(df, highlight_studio)
+    show_kiln_operations(df, highlight_studio)
     st.markdown("---")
     
-    show_growth_trajectories(df, highlight_studio)
+    show_classes_events(df, highlight_studio)
     st.markdown("---")
     
-    show_operational_models(df, highlight_studio)
+    show_amenities(df, highlight_studio)
     st.markdown("---")
+    
+    # ===================================================================
+    # PART 6: MARKET & GROWTH
+    # ===================================================================
+    
+    st.title("📈 PART 6: Market & Growth")
     
     show_market_context(df, highlight_studio)
     st.markdown("---")
     
-    show_classes_workshops(df, highlight_studio)
-    st.markdown("---")
-    
-    show_capacity_waitlists(df, highlight_studio)
-    st.markdown("---")
-    
-    show_buildout_costs(df, highlight_studio)
-    st.markdown("---")
-    
-    show_member_retention(df, highlight_studio)
-    st.markdown("---")
-    
-    show_revenue_optimization(df, highlight_studio)
-    st.markdown("---")
-    
-    show_profitability_patterns(df, highlight_studio)
-    st.markdown("---")
-    
-    show_kiln_analysis(df, highlight_studio)
+    show_member_dynamics(df, highlight_studio)
 
 
-def show_space_efficiency(df, highlight_studio=None):
-    """Section 1: Space Efficiency Deep Dive"""
-    
-    st.header("📏 Section 1: Space Efficiency")
-    st.caption("Understanding how studios use their physical space")
-    
-    # Q1: What's the optimal space per member?
-    st.subheader("Q1: What's the optimal space per member?")
-    
-    # Ensure numeric types
-    df_clean = df.copy()
-    df_clean['sqft_per_member'] = pd.to_numeric(df_clean['sqft_per_member'], errors='coerce')
-    df_clean['current_members'] = pd.to_numeric(df_clean['current_members'], errors='coerce')
-    df_clean = df_clean[df_clean['sqft_per_member'].notna()]
-    
-    if len(df_clean) == 0:
-        st.warning("No data available for this analysis")
-        return
-    
-    # Split data for highlighting
-    if highlight_studio and highlight_studio in df_clean['studio_name'].values:
-        df_highlight = df_clean[df_clean['studio_name'] == highlight_studio]
-        df_others = df_clean[df_clean['studio_name'] != highlight_studio]
-    else:
-        df_highlight = pd.DataFrame()
-        df_others = df_clean
-    
-    # Create Plotly scatter
-    fig = go.Figure()
-    
-    # Other studios
-    fig.add_trace(go.Scatter(
-        x=df_others['current_members'],
-        y=df_others['sqft_per_member'],
-        mode='markers',
-        name='Other Studios',
-        marker=dict(size=10, color='#1f77b4', opacity=0.6),
-        text=df_others['studio_name'],
-        hovertemplate='<b>Studio %{text}</b><br>Members: %{x}<br>Sq Ft/Member: %{y:.1f}<extra></extra>'
-    ))
-    
-    # Highlighted studio
-    if not df_highlight.empty:
-        fig.add_trace(go.Scatter(
-            x=df_highlight['current_members'],
-            y=df_highlight['sqft_per_member'],
-            mode='markers',
-            name=f'Your Studio ({highlight_studio})',
-            marker=dict(size=18, color='#FF4B4B', symbol='star', 
-                       line=dict(width=2, color='darkred')),
-            text=df_highlight['studio_name'],
-            hovertemplate='<b>YOUR STUDIO</b><br>Members: %{x}<br>Sq Ft/Member: %{y:.1f}<extra></extra>'
-        ))
-    
-    # Add median line
-    median_sqft = df_clean['sqft_per_member'].median()
-    fig.add_hline(y=median_sqft, line_dash="dash", line_color="gray",
-                  annotation_text=f"Median: {median_sqft:.1f}", annotation_position="right")
-    
-    fig.update_layout(
-        xaxis_title='Current Members',
-        yaxis_title='Square Feet per Member',
-        height=500,
-        hovermode='closest',
-        showlegend=True
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Interpretation
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Median", f"{median_sqft:.1f} sq ft/member")
-    with col2:
-        q25 = df_clean['sqft_per_member'].quantile(0.25)
-        st.metric("25th Percentile", f"{q25:.1f} sq ft/member")
-    with col3:
-        q75 = df_clean['sqft_per_member'].quantile(0.75)
-        st.metric("75th Percentile", f"{q75:.1f} sq ft/member")
-    
-    if highlight_studio and not df_highlight.empty:
-        studio_value = df_highlight['sqft_per_member'].iloc[0]
-        percentile = (df_clean['sqft_per_member'] <= studio_value).sum() / len(df_clean) * 100
-        
-        st.info(f"""
-        **Your Studio ({highlight_studio}):** {studio_value:.1f} sq ft/member
-        - **Percentile:** {percentile:.0f}th (you provide more space than {percentile:.0f}% of studios)
-        - **Interpretation:** {'You provide above-average space per member - members may appreciate the extra room' if studio_value > median_sqft else 'You run a more space-efficient studio - this can improve financial performance'}
-        """)
-    
-    # Q2: How many members can each wheel support?
-    st.markdown("---")
-    st.subheader("Q2: How many members can each wheel support?")
-    
-    # Ensure numeric types
-    df_wheel = df.copy()
-    df_wheel['members_per_wheel'] = pd.to_numeric(df_wheel['members_per_wheel'], errors='coerce')
-    df_wheel['total_wheels'] = pd.to_numeric(df_wheel['total_wheels'], errors='coerce')
-    df_wheel = df_wheel[df_wheel['members_per_wheel'].notna()]
-    
-    if len(df_wheel) > 0:
-        # Split data
-        if highlight_studio and highlight_studio in df_wheel['studio_name'].values:
-            df_h = df_wheel[df_wheel['studio_name'] == highlight_studio]
-            df_o = df_wheel[df_wheel['studio_name'] != highlight_studio]
-        else:
-            df_h = pd.DataFrame()
-            df_o = df_wheel
-        
-        fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=df_o['total_wheels'],
-            y=df_o['members_per_wheel'],
-            mode='markers',
-            name='Other Studios',
-            marker=dict(size=10, color='#2ca02c', opacity=0.6),
-            text=df_o['studio_name'],
-            hovertemplate='<b>Studio %{text}</b><br>Wheels: %{x}<br>Members/Wheel: %{y:.1f}<extra></extra>'
-        ))
-        
-        if not df_h.empty:
-            fig.add_trace(go.Scatter(
-                x=df_h['total_wheels'],
-                y=df_h['members_per_wheel'],
-                mode='markers',
-                name=f'Your Studio ({highlight_studio})',
-                marker=dict(size=18, color='#FF4B4B', symbol='star',
-                           line=dict(width=2, color='darkred')),
-                hovertemplate='<b>YOUR STUDIO</b><br>Wheels: %{x}<br>Members/Wheel: %{y:.1f}<extra></extra>'
-            ))
-        
-        median_ratio = df_wheel['members_per_wheel'].median()
-        fig.add_hline(y=median_ratio, line_dash="dash", line_color="gray",
-                      annotation_text=f"Median: {median_ratio:.1f}", annotation_position="right")
-        
-        fig.update_layout(
-            xaxis_title='Total Wheels',
-            yaxis_title='Members per Wheel',
-            height=500,
-            hovermode='closest'
-        )
-        
-        # Force integer ticks for wheels axis since wheels are discrete
-        max_wheels = int(df_wheel['total_wheels'].max())
-        if max_wheels <= 20:
-            fig.update_xaxes(dtick=1)
-        elif max_wheels <= 50:
-            fig.update_xaxes(dtick=5)
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Median Ratio", f"{median_ratio:.1f} members/wheel")
-        with col2:
-            st.metric("Min", f"{df_wheel['members_per_wheel'].min():.1f}")
-        with col3:
-            st.metric("Max", f"{df_wheel['members_per_wheel'].max():.1f}")
-        
-        if highlight_studio and not df_h.empty:
-            your_ratio = df_h['members_per_wheel'].iloc[0]
-            pct = (df_wheel['members_per_wheel'] <= your_ratio).sum() / len(df_wheel) * 100
-            
-            st.info(f"""
-            **Your ratio:** {your_ratio:.1f} members/wheel ({pct:.0f}th percentile)
-            - {'Consider adding more wheels - your ratio is above the median' if your_ratio > median_ratio else 'Your wheel-to-member ratio looks healthy'}
-            """)
-    
-    # Q3: Distribution of space per member
-    st.markdown("---")
-    st.subheader("Q3: How does space efficiency vary?")
-    
-    # Altair histogram
-    df_clean['is_highlighted'] = df_clean['studio_name'] == highlight_studio if highlight_studio else False
-    
-    chart = alt.Chart(df_clean).mark_bar().encode(
-        x=alt.X('sqft_per_member:Q', bin=alt.Bin(step=20), title='Square Feet per Member'),
-        y=alt.Y('count()', title='Number of Studios'),
-        color=alt.condition(
-            alt.datum.is_highlighted == True,
-            alt.value('#FF4B4B'),
-            alt.value('#1f77b4')
-        ),
-        opacity=alt.condition(
-            alt.datum.is_highlighted == True,
-            alt.value(1.0),
-            alt.value(0.7)
-        ),
-        tooltip=['count()']
-    ).properties(height=350)
-    
-    st.altair_chart(chart, use_container_width=True)
-    
-    st.caption(f"Most studios operate between {df_clean['sqft_per_member'].quantile(0.25):.0f} and {df_clean['sqft_per_member'].quantile(0.75):.0f} sq ft per member")
+# ===========================================================================
+# PART 1: STUDIO BASICS
+# ===========================================================================
 
-
-def show_pricing_analysis(df, highlight_studio=None):
-    """Section 2: Pricing Benchmarking"""
+def show_physical_studio(df, highlight_studio=None):
+    """Section 1: Physical Studio (Q1-Q6)"""
     
-    st.header("💰 Section 2: Pricing Benchmarking")
-    st.caption("How do studios price their memberships and services?")
+    st.header("🏢 Section 1: Physical Studio")
     
-    # Q4: What do most studios charge for base membership?
-    st.subheader("Q4: What do most studios charge for base membership?")
+    # Q1: Studio size distribution
+    st.subheader("Q1: How big are studios typically?")
     
-    # Ensure numeric type
-    df_price = df.copy()
-    df_price['tier1_price'] = pd.to_numeric(df_price['tier1_price'], errors='coerce')
-    df_price = df_price[df_price['tier1_price'].notna()]
+    df_space = df.copy()
+    df_space['space_sqft'] = pd.to_numeric(df_space['space_sqft'], errors='coerce')
+    df_space = df_space[df_space['space_sqft'].notna()]
     
-    if len(df_price) == 0:
-        st.warning("No pricing data available")
-        return
-    
-    # Histogram with highlight
-    df_price['is_highlighted'] = df_price['studio_name'] == highlight_studio if highlight_studio else False
-    
-    chart = alt.Chart(df_price).mark_bar().encode(
-        x=alt.X('tier1_price:Q', bin=alt.Bin(step=25), title='Monthly Membership Price ($)'),
-        y=alt.Y('count()', title='Number of Studios'),
-        color=alt.condition(
-            alt.datum.is_highlighted == True,
-            alt.value('#FF4B4B'),
-            alt.value('#9467bd')
-        ),
-        tooltip=['count()']
-    ).properties(height=350)
-    
-    st.altair_chart(chart, use_container_width=True)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Median Price", f"${df_price['tier1_price'].median():.0f}/mo")
-    with col2:
-        st.metric("25th Percentile", f"${df_price['tier1_price'].quantile(0.25):.0f}/mo")
-    with col3:
-        st.metric("75th Percentile", f"${df_price['tier1_price'].quantile(0.75):.0f}/mo")
-    
-    if highlight_studio and highlight_studio in df_price['studio_name'].values:
-        your_price = df_price[df_price['studio_name'] == highlight_studio]['tier1_price'].iloc[0]
-        pct = (df_price['tier1_price'] <= your_price).sum() / len(df_price) * 100
-        median = df_price['tier1_price'].median()
-        
-        st.info(f"""
-        **Your base membership:** ${your_price:.0f}/mo ({pct:.0f}th percentile)
-        - You charge ${abs(your_price - median):.0f} {'more' if your_price > median else 'less'} than the median
-        - {'Your pricing is in the upper range - ensure you deliver premium value' if your_price > df_price['tier1_price'].quantile(0.75) else 'Your pricing is competitive with the market' if your_price >= df_price['tier1_price'].quantile(0.25) else 'You may have room to increase prices'}
-        """)
-    
-    # Q8: How does pricing vary by location?
-    st.markdown("---")
-    st.subheader("Q5: How does pricing vary by metro area size?")
-    
-    if 'metro_population' in df.columns:
-        df_location = df[df['tier1_price'].notna() & df['metro_population'].notna()].copy()
-        
-        if len(df_location) > 0:
-            # Box plot by metro size
-            fig = px.box(df_location, x='metro_population', y='tier1_price',
-                        labels={'metro_population': 'Metro Population', 'tier1_price': 'Base Membership Price ($)'},
-                        height=400)
-            
-            # Highlight user's point if applicable
-            if highlight_studio and highlight_studio in df_location['studio_name'].values:
-                user_row = df_location[df_location['studio_name'] == highlight_studio].iloc[0]
-                fig.add_trace(go.Scatter(
-                    x=[user_row['metro_population']],
-                    y=[user_row['tier1_price']],
-                    mode='markers',
-                    marker=dict(size=15, color='red', symbol='star'),
-                    name='Your Studio',
-                    hovertext=f"Your Studio: ${user_row['tier1_price']:.0f}"
-                ))
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.caption("Larger metro areas tend to support higher pricing, but there's significant variation within each category")
-    
-    # Q9: What's the going rate for firing fees?
-    st.markdown("---")
-    st.subheader("Q6: What firing fee models do studios use?")
-    
-    if 'firing_model' in df.columns:
-        firing_counts = df['firing_model'].value_counts().reset_index()
-        firing_counts.columns = ['Firing Model', 'Count']
-        
-        # Highlight user's model
-        if highlight_studio and highlight_studio in df['studio_name'].values:
-            user_model = df[df['studio_name'] == highlight_studio]['firing_model'].iloc[0]
-            firing_counts['is_user'] = firing_counts['Firing Model'] == user_model
-        else:
-            firing_counts['is_user'] = False
-        
-        chart = alt.Chart(firing_counts).mark_bar().encode(
-            x=alt.X('Count:Q'),
-            y=alt.Y('Firing Model:N', sort='-x'),
-            color=alt.condition(
-                alt.datum.is_user == True,
-                alt.value('#FF4B4B'),
-                alt.value('#ff7f0e')
-            ),
-            tooltip=['Firing Model', 'Count']
+    if len(df_space) > 0:
+        chart = alt.Chart(df_space).mark_bar().encode(
+            x=alt.X('space_sqft:Q', bin=alt.Bin(step=500), title='Studio Size (Sq Ft)'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#17becf')
         ).properties(height=300)
         
         st.altair_chart(chart, use_container_width=True)
-
-
-def show_equipment_analysis(df, highlight_studio=None):
-    """Section 3: Equipment Analysis"""
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Min", f"{df_space['space_sqft'].min():.0f} sq ft")
+        with col2:
+            st.metric("25th %ile", f"{df_space['space_sqft'].quantile(0.25):.0f} sq ft")
+        with col3:
+            st.metric("Median", f"{df_space['space_sqft'].median():.0f} sq ft")
+        with col4:
+            st.metric("75th %ile", f"{df_space['space_sqft'].quantile(0.75):.0f} sq ft")
     
-    st.header("🛠️ Section 3: Equipment Analysis")
-    
-    # Q18: How many kilns do studios need?
-    st.subheader("Q7: How many kilns do studios typically have?")
-    
-    # Convert num_kilns to numeric, coercing errors
-    df_kilns = df.copy()
-    df_kilns['num_kilns'] = pd.to_numeric(df_kilns['num_kilns'], errors='coerce')
-    df_kilns['current_members'] = pd.to_numeric(df_kilns['current_members'], errors='coerce')
-    df_kilns = df_kilns[df_kilns['num_kilns'].notna() & df_kilns['current_members'].notna()]
-    
-    if len(df_kilns) > 0:
-        if highlight_studio and highlight_studio in df_kilns['studio_name'].values:
-            df_h = df_kilns[df_kilns['studio_name'] == highlight_studio]
-            df_o = df_kilns[df_kilns['studio_name'] != highlight_studio]
-        else:
-            df_h = pd.DataFrame()
-            df_o = df_kilns
-        
-        fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=df_o['current_members'],
-            y=df_o['num_kilns'],
-            mode='markers',
-            name='Other Studios',
-            marker=dict(size=10, color='#d62728', opacity=0.6),
-            text=df_o['studio_name'],
-            hovertemplate='<b>Studio %{text}</b><br>Members: %{x}<br>Kilns: %{y}<extra></extra>'
-        ))
-        
-        if not df_h.empty:
-            fig.add_trace(go.Scatter(
-                x=df_h['current_members'],
-                y=df_h['num_kilns'],
-                mode='markers',
-                name=f'Your Studio',
-                marker=dict(size=18, color='#FF4B4B', symbol='star'),
-                hovertemplate='<b>YOUR STUDIO</b><br>Members: %{x}<br>Kilns: %{y}<extra></extra>'
-            ))
-        
-        fig.update_layout(
-            xaxis_title='Current Members',
-            yaxis_title='Number of Kilns',
-            height=400
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        median_kilns = df_kilns['num_kilns'].median()
-        st.caption(f"Median: {median_kilns:.0f} kilns per studio")
-    
-    # Q17: Wheel brand preferences
+    # Q2: Size by metro population
     st.markdown("---")
-    st.subheader("Q8: Which wheel brands would studios buy again?")
+    st.subheader("Q2: Does studio size vary by metro population?")
+    
+    if 'metro_population' in df_space.columns:
+        df_metro = df_space[df_space['metro_population'].notna()]
+        
+        if len(df_metro) > 0:
+            fig = px.box(df_metro, 
+                        x='metro_population', 
+                        y='space_sqft',
+                        title='Studio Size by Metro Population',
+                        labels={'space_sqft': 'Studio Size (Sq Ft)', 
+                               'metro_population': 'Metro Population'},
+                        height=400)
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Q3: Size by studio type
+    st.markdown("---")
+    st.subheader("Q3: Does studio size vary by studio type?")
+    
+    if 'studio_type' in df_space.columns:
+        df_type = df_space[df_space['studio_type'].notna()]
+        
+        if len(df_type) > 0:
+            fig = px.box(df_type,
+                        x='studio_type',
+                        y='space_sqft',
+                        title='Studio Size by Type',
+                        labels={'space_sqft': 'Studio Size (Sq Ft)',
+                               'studio_type': 'Studio Type'},
+                        height=400)
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Q4: Years in operation
+    st.markdown("---")
+    st.subheader("Q4: How long have studios been operational?")
+    
+    df_age = df.copy()
+    df_age['years_operating_total_months'] = pd.to_numeric(
+        df_age['years_operating_total_months'], errors='coerce')
+    df_age['years_operating'] = df_age['years_operating_total_months'] / 12
+    
+    df_age = df_age[df_age['years_operating'].notna()]
+    
+    if len(df_age) > 0:
+        chart = alt.Chart(df_age).mark_bar().encode(
+            x=alt.X('years_operating:Q', bin=alt.Bin(step=1), title='Years Operating'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#8c564b')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Newest", f"{df_age['years_operating'].min():.1f} yrs")
+        with col2:
+            st.metric("Median Age", f"{df_age['years_operating'].median():.1f} yrs")
+        with col3:
+            st.metric("Oldest", f"{df_age['years_operating'].max():.1f} yrs")
+        with col4:
+            young_studios = (df_age['years_operating'] < 2).sum()
+            pct_young = (young_studios / len(df_age) * 100)
+            st.metric("Under 2 Years", f"{pct_young:.0f}%")
+    
+    # Q5: Status by age
+    st.markdown("---")
+    st.subheader("Q5: How does studio status vary by age?")
+    
+    if 'studio_status' in df_age.columns:
+        df_status = df_age[df_age['studio_status'].notna()]
+        
+        if len(df_status) > 0:
+            df_status['age_bin'] = pd.cut(
+                df_status['years_operating'],
+                bins=[0, 1, 2, 5, 10, 100],
+                labels=['<1 yr', '1-2 yrs', '2-5 yrs', '5-10 yrs', '10+ yrs']
+            )
+            
+            status_age = df_status.groupby(['age_bin', 'studio_status']).size().reset_index(name='count')
+            
+            chart = alt.Chart(status_age).mark_bar().encode(
+                x=alt.X('age_bin:N', title='Studio Age'),
+                y=alt.Y('count:Q', title='Number of Studios'),
+                color=alt.Color('studio_status:N', title='Status'),
+                tooltip=['age_bin', 'studio_status', 'count']
+            ).properties(height=350)
+            
+            st.altair_chart(chart, use_container_width=True)
+    
+    # Q6: Geographic distribution
+    st.markdown("---")
+    st.subheader("Q6: Where are studios located?")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if 'area_type' in df.columns:
+            area_counts = df['area_type'].value_counts().reset_index()
+            area_counts.columns = ['Area Type', 'Count']
+            
+            chart = alt.Chart(area_counts).mark_bar().encode(
+                y=alt.Y('Area Type:N', sort='-x'),
+                x=alt.X('Count:Q'),
+                tooltip=['Area Type', 'Count'],
+                color=alt.value('#1f77b4')
+            ).properties(height=250, title='Studio Locations by Area Type')
+            
+            st.altair_chart(chart, use_container_width=True)
+    
+    with col2:
+        if 'metro_population' in df.columns:
+            metro_counts = df['metro_population'].value_counts().reset_index()
+            metro_counts.columns = ['Metro Population', 'Count']
+            
+            pop_order = [
+                "Under 50,000",
+                "50,000-100,000",
+                "100,000-250,000",
+                "250,000-500,000",
+                "500,000-1M",
+                "Over 1M"
+            ]
+            
+            metro_counts['Metro Population'] = pd.Categorical(
+                metro_counts['Metro Population'],
+                categories=pop_order,
+                ordered=True
+            )
+            metro_counts = metro_counts.sort_values('Metro Population')
+            
+            chart = alt.Chart(metro_counts).mark_bar().encode(
+                y=alt.Y('Metro Population:N', sort=pop_order),
+                x=alt.X('Count:Q'),
+                tooltip=['Metro Population', 'Count'],
+                color=alt.value('#2ca02c')
+            ).properties(height=250, title='Metro Area Distribution')
+            
+            st.altair_chart(chart, use_container_width=True)
+
+
+def show_equipment_inventory(df, highlight_studio=None):
+    """Section 2: Equipment Inventory (Q7-Q12)"""
+    
+    st.header("🛠️ Section 2: Equipment Inventory")
+    
+    # Prepare data
+    df_equip = df.copy()
+    for col in ['total_wheels', 'handbuilding_stations', 'glazing_stations', 'num_kilns', 'space_sqft']:
+        df_equip[col] = pd.to_numeric(df_equip[col], errors='coerce')
+    
+    # Q7-Q10: Distribution of each equipment type
+    st.subheader("Q7-Q10: What's the typical equipment inventory?")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Q7: Pottery Wheels**")
+        df_wheels = df_equip[df_equip['total_wheels'].notna()]
+        if len(df_wheels) > 0:
+            median_wheels = df_wheels['total_wheels'].median()
+            st.metric("Median", f"{median_wheels:.0f} wheels")
+            
+            chart = alt.Chart(df_wheels).mark_bar().encode(
+                x=alt.X('total_wheels:Q', bin=alt.Bin(step=2), title='Total Wheels'),
+                y=alt.Y('count()', title='Studios'),
+                color=alt.value('#1f77b4')
+            ).properties(height=250)
+            st.altair_chart(chart, use_container_width=True)
+        
+        st.markdown("**Q9: Glazing Stations**")
+        df_glaze = df_equip[df_equip['glazing_stations'].notna()]
+        if len(df_glaze) > 0:
+            median_glaze = df_glaze['glazing_stations'].median()
+            st.metric("Median", f"{median_glaze:.0f} stations")
+            
+            chart = alt.Chart(df_glaze).mark_bar().encode(
+                x=alt.X('glazing_stations:Q', bin=alt.Bin(step=2), 
+                       title='Glazing Stations'),
+                y=alt.Y('count()', title='Studios'),
+                color=alt.value('#ff7f0e')
+            ).properties(height=250)
+            st.altair_chart(chart, use_container_width=True)
+    
+    with col2:
+        st.markdown("**Q8: Handbuilding Stations**")
+        df_hb = df_equip[df_equip['handbuilding_stations'].notna()]
+        if len(df_hb) > 0:
+            median_hb = df_hb['handbuilding_stations'].median()
+            st.metric("Median", f"{median_hb:.0f} stations")
+            
+            chart = alt.Chart(df_hb).mark_bar().encode(
+                x=alt.X('handbuilding_stations:Q', bin=alt.Bin(step=2), 
+                       title='Handbuilding Stations'),
+                y=alt.Y('count()', title='Studios'),
+                color=alt.value('#2ca02c')
+            ).properties(height=250)
+            st.altair_chart(chart, use_container_width=True)
+        
+        st.markdown("**Q10: Number of Kilns**")
+        df_kilns = df_equip[df_equip['num_kilns'].notna()]
+        if len(df_kilns) > 0:
+            median_kilns = df_kilns['num_kilns'].median()
+            st.metric("Median", f"{median_kilns:.0f} kilns")
+            
+            chart = alt.Chart(df_kilns).mark_bar().encode(
+                x=alt.X('num_kilns:Q', bin=alt.Bin(step=1), title='Number of Kilns'),
+                y=alt.Y('count()', title='Studios'),
+                color=alt.value('#d62728')
+            ).properties(height=250)
+            st.altair_chart(chart, use_container_width=True)
+    
+    # Q11: Equipment density
+    st.markdown("---")
+    st.subheader("Q11: How much equipment per square foot?")
+    
+    df_equip['total_stations'] = (df_equip['total_wheels'].fillna(0) + 
+                                   df_equip['handbuilding_stations'].fillna(0) + 
+                                   df_equip['glazing_stations'].fillna(0))
+    
+    df_equip['equipment_density'] = (df_equip['total_stations'] / 
+                                      df_equip['space_sqft'] * 1000)
+    
+    df_density = df_equip[df_equip['equipment_density'].notna() & 
+                          (df_equip['equipment_density'] > 0) & 
+                          (df_equip['equipment_density'] < 100)]
+    
+    if len(df_density) > 0:
+        chart = alt.Chart(df_density).mark_bar().encode(
+            x=alt.X('equipment_density:Q', bin=alt.Bin(step=2), 
+                   title='Total Stations per 1,000 Sq Ft'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#9467bd')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        median_density = df_density['equipment_density'].median()
+        st.caption(f"Median: {median_density:.1f} stations per 1,000 sq ft")
+    
+    # Q12: Wheel brand preferences
+    st.markdown("---")
+    st.subheader("Q12: Which wheel brands would studios buy again?")
     
     if 'wheel_preference' in df.columns:
-        # Extract all preferences
         all_prefs = []
         for prefs in df['wheel_preference'].dropna():
             parsed = _parse_jsonish(prefs)
@@ -555,38 +440,661 @@ def show_equipment_analysis(df, highlight_studio=None):
             st.altair_chart(chart, use_container_width=True)
 
 
-def show_financial_performance(df, highlight_studio=None):
-    """Section 4: Financial Performance"""
+def show_membership_scale(df, highlight_studio=None):
+    """Section 3: Membership Scale (Q13-Q17)"""
     
-    st.header("💵 Section 4: Financial Performance")
+    st.header("👥 Section 3: Membership Scale")
     
-    # Q12: What rent can a studio afford?
-    st.subheader("Q9: Rent per member analysis")
+    df_members = df.copy()
+    df_members['current_members'] = pd.to_numeric(df_members['current_members'], errors='coerce')
+    df_members = df_members[df_members['current_members'].notna()]
     
-    # Ensure numeric type
-    df_rent = df.copy()
-    df_rent['rent_per_member'] = pd.to_numeric(df_rent['rent_per_member'], errors='coerce')
-    df_rent = df_rent[df_rent['rent_per_member'].notna()]
+    if len(df_members) == 0:
+        st.warning("No member data available")
+        return
     
-    if len(df_rent) > 0:
-        chart = alt.Chart(df_rent).mark_bar().encode(
-            x=alt.X('rent_per_member:Q', bin=alt.Bin(step=50), title='Monthly Rent per Member ($)'),
+    # Q13: Member count distribution
+    st.subheader("Q13: What's the typical member count?")
+    
+    chart = alt.Chart(df_members).mark_bar().encode(
+        x=alt.X('current_members:Q', bin=alt.Bin(step=10), title='Current Members'),
+        y=alt.Y('count()', title='Number of Studios'),
+        color=alt.value('#e377c2')
+    ).properties(height=300)
+    
+    st.altair_chart(chart, use_container_width=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Min", f"{df_members['current_members'].min():.0f}")
+    with col2:
+        st.metric("25th %ile", f"{df_members['current_members'].quantile(0.25):.0f}")
+    with col3:
+        st.metric("Median", f"{df_members['current_members'].median():.0f}")
+    with col4:
+        st.metric("75th %ile", f"{df_members['current_members'].quantile(0.75):.0f}")
+    
+    # Q14: Growth by studio age
+    st.markdown("---")
+    st.subheader("Q14: How do studios grow over time?")
+    
+    if 'years_operating_total_months' in df_members.columns:
+        df_members['years_operating'] = pd.to_numeric(
+            df_members['years_operating_total_months'], errors='coerce') / 12
+        
+        df_growth = df_members[df_members['years_operating'].notna()]
+        
+        if len(df_growth) > 0:
+            fig = go.Figure()
+            
+            if highlight_studio and highlight_studio in df_growth['studio_name'].values:
+                df_h = df_growth[df_growth['studio_name'] == highlight_studio]
+                df_o = df_growth[df_growth['studio_name'] != highlight_studio]
+            else:
+                df_h = pd.DataFrame()
+                df_o = df_growth
+            
+            fig.add_trace(go.Scatter(
+                x=df_o['years_operating'],
+                y=df_o['current_members'],
+                mode='markers',
+                name='Other Studios',
+                marker=dict(size=8, color='#7f7f7f', opacity=0.6)
+            ))
+            
+            if not df_h.empty:
+                fig.add_trace(go.Scatter(
+                    x=df_h['years_operating'],
+                    y=df_h['current_members'],
+                    mode='markers',
+                    name='Your Studio',
+                    marker=dict(size=15, color='#FF4B4B', symbol='star')
+                ))
+            
+            fig.update_layout(
+                xaxis_title='Years Operating',
+                yaxis_title='Current Members',
+                height=400,
+                xaxis=dict(range=[0, None]),  # start X at 0, let Plotly auto-determine the upper limit
+                yaxis=dict(range=[0, None])   # start Y at 0, let Plotly auto-determine the upper limit
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Q15: Time to reach current membership
+    st.markdown("---")
+    st.subheader("Q15: How long does it take to reach current membership?")
+    
+    df_time = df.copy()
+    df_time['time_to_members_months'] = pd.to_numeric(df_time['time_to_members_months'], errors='coerce')
+    df_time['current_members'] = pd.to_numeric(df_time['current_members'], errors='coerce')
+    df_time = df_time[df_time['time_to_members_months'].notna() & df_time['current_members'].notna()]
+    
+    if len(df_time) > 0:
+        fig = go.Figure()
+        
+        if highlight_studio and highlight_studio in df_time['studio_name'].values:
+            df_h = df_time[df_time['studio_name'] == highlight_studio]
+            df_o = df_time[df_time['studio_name'] != highlight_studio]
+        else:
+            df_h = pd.DataFrame()
+            df_o = df_time
+        
+        fig.add_trace(go.Scatter(
+            x=df_o['time_to_members_months'],
+            y=df_o['current_members'],
+            mode='markers',
+            name='Other Studios',
+            marker=dict(size=10, color='#7f7f7f', opacity=0.6)
+        ))
+        
+        if not df_h.empty:
+            fig.add_trace(go.Scatter(
+                x=df_h['time_to_members_months'],
+                y=df_h['current_members'],
+                mode='markers',
+                name='Your Studio',
+                marker=dict(size=18, color='#FF4B4B', symbol='star')
+            ))
+        
+        fig.update_layout(
+            xaxis_title='Months to Reach Current Membership',
+            yaxis_title='Current Members',
+            height=400,
+            xaxis=dict(range=[0, None]),  # start X at 0, let Plotly auto-determine the upper limit
+            yaxis=dict(range=[0, None])   # start Y at 0, let Plotly auto-determine the upper limit
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Q16: Member composition
+    st.markdown("---")
+    st.subheader("Q16: What's typical member composition?")
+    
+    if 'member_pcts' in df.columns:
+        member_data = []
+        for idx, row in df.iterrows():
+            pct_dict = _parse_jsonish(row['member_pcts'])
+            if isinstance(pct_dict, dict):
+                for member_type, pct in pct_dict.items():
+                    if isinstance(pct, (int, float)) and pct > 0:
+                        member_data.append({'type': member_type, 'percentage': pct})
+        
+        if member_data:
+            mem_df = pd.DataFrame(member_data)
+            avg_mem = mem_df.groupby('type')['percentage'].mean().reset_index()
+            avg_mem.columns = ['Member Type', 'Average %']
+            
+            name_map = {
+                'hobbyist': 'Hobbyists\n(1x/week or less)',
+                'regular': 'Regular Artists\n(2-3x/week)',
+                'production': 'Production Potters\n(4+x/week)',
+                'seasonal': 'Seasonal/Occasional'
+            }
+            avg_mem['Member Type'] = avg_mem['Member Type'].map(
+                lambda x: name_map.get(x, x.title())
+            )
+            
+            fig = px.pie(avg_mem, values='Average %', names='Member Type',
+                        title='Average Member Composition Across Studios',
+                        height=400)
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Q17: Members per wheel ratio
+    st.markdown("---")
+    st.subheader("Q17: How many members can each wheel support?")
+    
+    df_wheel = df.copy()
+    df_wheel['members_per_wheel'] = pd.to_numeric(df_wheel['members_per_wheel'], errors='coerce')
+    df_wheel['total_wheels'] = pd.to_numeric(df_wheel['total_wheels'], errors='coerce')
+    df_wheel = df_wheel[df_wheel['members_per_wheel'].notna()]
+    
+    if len(df_wheel) > 0:
+        fig = go.Figure()
+        
+        if highlight_studio and highlight_studio in df_wheel['studio_name'].values:
+            df_h = df_wheel[df_wheel['studio_name'] == highlight_studio]
+            df_o = df_wheel[df_wheel['studio_name'] != highlight_studio]
+        else:
+            df_h = pd.DataFrame()
+            df_o = df_wheel
+        
+        fig.add_trace(go.Scatter(
+            x=df_o['total_wheels'],
+            y=df_o['members_per_wheel'],
+            mode='markers',
+            name='Other Studios',
+            marker=dict(size=10, color='#2ca02c', opacity=0.6)
+        ))
+        
+        if not df_h.empty:
+            fig.add_trace(go.Scatter(
+                x=df_h['total_wheels'],
+                y=df_h['members_per_wheel'],
+                mode='markers',
+                name='Your Studio',
+                marker=dict(size=18, color='#FF4B4B', symbol='star')
+            ))
+        
+        median_ratio = df_wheel['members_per_wheel'].median()
+        fig.add_hline(y=median_ratio, line_dash="dash", line_color="gray",
+                      annotation_text=f"Median: {median_ratio:.1f}")
+        
+        fig.update_layout(
+            xaxis_title='Total Wheels',
+            yaxis_title='Members per Wheel',
+            height=400,
+            xaxis=dict(range=[0, None]),  # start X at 0, let Plotly auto-determine the upper limit
+            yaxis=dict(range=[0, None])   # start Y at 0, let Plotly auto-determine the upper limit
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Median Ratio", f"{median_ratio:.1f} members/wheel")
+        with col2:
+            st.metric("Range", f"{df_wheel['members_per_wheel'].min():.1f} - {df_wheel['members_per_wheel'].max():.1f}")
+
+
+# ===========================================================================
+# PART 2: SPACE & CAPACITY EFFICIENCY
+# ===========================================================================
+
+def show_space_efficiency(df, highlight_studio=None):
+    """Section 4: Space Efficiency (Q18-Q21)"""
+    
+    st.header("📐 Section 4: Space Efficiency")
+    
+    # Q18: Space per member analysis
+    st.subheader("Q18: What's the optimal space per member?")
+    
+    df_space = df.copy()
+    df_space['sqft_per_member'] = pd.to_numeric(df_space['sqft_per_member'], errors='coerce')
+    df_space['current_members'] = pd.to_numeric(df_space['current_members'], errors='coerce')
+    df_space = df_space[df_space['sqft_per_member'].notna()]
+    
+    if len(df_space) > 0:
+        if highlight_studio and highlight_studio in df_space['studio_name'].values:
+            df_h = df_space[df_space['studio_name'] == highlight_studio]
+            df_o = df_space[df_space['studio_name'] != highlight_studio]
+        else:
+            df_h = pd.DataFrame()
+            df_o = df_space
+        
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatter(
+            x=df_o['current_members'],
+            y=df_o['sqft_per_member'],
+            mode='markers',
+            name='Other Studios',
+            marker=dict(size=10, color='#1f77b4', opacity=0.6)
+        ))
+        
+        if not df_h.empty:
+            fig.add_trace(go.Scatter(
+                x=df_h['current_members'],
+                y=df_h['sqft_per_member'],
+                mode='markers',
+                name='Your Studio',
+                marker=dict(size=18, color='#FF4B4B', symbol='star')
+            ))
+        
+        median_sqft = df_space['sqft_per_member'].median()
+        fig.add_hline(y=median_sqft, line_dash="dash", line_color="gray",
+                      annotation_text=f"Median: {median_sqft:.1f}")
+        
+        fig.update_layout(
+            xaxis_title='Current Members',
+            yaxis_title='Square Feet per Member',
+            height=400,
+            xaxis=dict(range=[0, None]),  # start X at 0, let Plotly auto-determine the upper limit
+            yaxis=dict(range=[0, None])   # start Y at 0, let Plotly auto-determine the upper limit
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Median", f"{median_sqft:.1f} sq ft/member")
+        with col2:
+            q25 = df_space['sqft_per_member'].quantile(0.25)
+            st.metric("25th Percentile", f"{q25:.1f} sq ft/member")
+        with col3:
+            q75 = df_space['sqft_per_member'].quantile(0.75)
+            st.metric("75th Percentile", f"{q75:.1f} sq ft/member")
+    
+    # Q19: Space efficiency distribution
+    st.markdown("---")
+    st.subheader("Q19: How does space efficiency vary?")
+    
+    chart = alt.Chart(df_space).mark_bar().encode(
+        x=alt.X('sqft_per_member:Q', bin=alt.Bin(step=20), title='Square Feet per Member'),
+        y=alt.Y('count()', title='Number of Studios'),
+        color=alt.value('#1f77b4')
+    ).properties(height=300)
+    
+    st.altair_chart(chart, use_container_width=True)
+    
+    # Q20: Capacity utilization
+    st.markdown("---")
+    st.subheader("Q20: What's typical capacity utilization?")
+    
+    if 'capacity_utilization' in df.columns:
+        df_cap = df.copy()
+        df_cap['capacity_utilization'] = pd.to_numeric(df_cap['capacity_utilization'], errors='coerce')
+        df_cap = df_cap[df_cap['capacity_utilization'].notna()]
+        
+        if len(df_cap) > 0:
+            chart = alt.Chart(df_cap).mark_bar().encode(
+                x=alt.X('capacity_utilization:Q', bin=alt.Bin(step=10), 
+                       title='Capacity Utilization (%)'),
+                y=alt.Y('count()', title='Number of Studios'),
+                color=alt.value('#17becf')
+            ).properties(height=300)
+            
+            st.altair_chart(chart, use_container_width=True)
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                median_cap = df_cap['capacity_utilization'].median()
+                st.metric("Median Capacity", f"{median_cap:.0f}%")
+            with col2:
+                high_cap = (df_cap['capacity_utilization'] >= 80).sum() / len(df_cap) * 100
+                st.metric("High Utilization (≥80%)", f"{high_cap:.0f}%")
+            with col3:
+                low_cap = (df_cap['capacity_utilization'] < 50).sum() / len(df_cap) * 100
+                st.metric("Low Utilization (<50%)", f"{low_cap:.0f}%")
+    
+    # Q21: Waitlist patterns
+    st.markdown("---")
+    st.subheader("Q21: At what density do studios develop waitlists?")
+    
+    if 'has_waitlist' in df.columns:
+        def _to_bool(s):
+            if pd.api.types.is_bool_dtype(s):
+                return s
+            s = s.astype(str).str.strip().str.lower()
+            mapping = {'yes': True, 'y': True, 'true': True, 't': True, '1': True,
+                      'no': False, 'n': False, 'false': False, 'f': False, '0': False}
+            return s.map(mapping)
+        
+        df_wait = df.copy()
+        df_wait['has_waitlist_bool'] = _to_bool(df_wait['has_waitlist'])
+        df_wait['members_per_wheel'] = pd.to_numeric(df_wait['members_per_wheel'], errors='coerce')
+        df_wait = df_wait[df_wait['has_waitlist_bool'].notna() & 
+                         df_wait['members_per_wheel'].notna()]
+        
+        if len(df_wait) > 0:
+            waitlist_studios = df_wait[df_wait['has_waitlist_bool'] == True]
+            no_waitlist_studios = df_wait[df_wait['has_waitlist_bool'] == False]
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if len(waitlist_studios) > 0:
+                    median_with_wait = waitlist_studios['members_per_wheel'].median()
+                    st.metric("Studios WITH Waitlist", f"{median_with_wait:.1f} members/wheel")
+            with col2:
+                if len(no_waitlist_studios) > 0:
+                    median_without_wait = no_waitlist_studios['members_per_wheel'].median()
+                    st.metric("Studios WITHOUT Waitlist", f"{median_without_wait:.1f} members/wheel")
+
+
+# ===========================================================================
+# PART 3: PRICING & REVENUE
+# ===========================================================================
+
+def show_membership_pricing(df, highlight_studio=None):
+    """Section 5: Membership Pricing (Q22-Q27)"""
+    
+    st.header("💰 Section 5: Membership Pricing")
+    
+    # Q22: Base membership pricing
+    st.subheader("Q22: What do studios charge for base membership?")
+    
+    df_price = df.copy()
+    df_price['tier1_price'] = pd.to_numeric(df_price['tier1_price'], errors='coerce')
+    df_price = df_price[df_price['tier1_price'].notna()]
+    
+    if len(df_price) > 0:
+        chart = alt.Chart(df_price).mark_bar().encode(
+            x=alt.X('tier1_price:Q', bin=alt.Bin(step=25), title='Monthly Membership Price ($)'),
             y=alt.Y('count()', title='Number of Studios'),
-            color=alt.value('#bcbd22')
-        ).properties(height=350)
+            color=alt.value('#9467bd')
+        ).properties(height=300)
         
         st.altair_chart(chart, use_container_width=True)
         
-        median_rent = df_rent['rent_per_member'].median()
-        st.metric("Median Rent per Member", f"${median_rent:.0f}/member/month")
-        
-        if highlight_studio and highlight_studio in df_rent['studio_name'].values:
-            your_rent = df_rent[df_rent['studio_name'] == highlight_studio]['rent_per_member'].iloc[0]
-            st.info(f"Your rent per member: ${your_rent:.0f} ({'above' if your_rent > median_rent else 'below'} median)")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Median Price", f"${df_price['tier1_price'].median():.0f}/mo")
+        with col2:
+            st.metric("25th Percentile", f"${df_price['tier1_price'].quantile(0.25):.0f}/mo")
+        with col3:
+            st.metric("75th Percentile", f"${df_price['tier1_price'].quantile(0.75):.0f}/mo")
     
-    # Q16: Where does revenue come from?
+    # Q23: Pricing by metro area
     st.markdown("---")
-    st.subheader("Q10: Average revenue mix across all studios")
+    st.subheader("Q23: How does pricing vary by metro area size?")
+    
+    if 'metro_population' in df.columns:
+        df_location = df[df['tier1_price'].notna() & df['metro_population'].notna()].copy()
+        
+        if len(df_location) > 0:
+            fig = px.box(df_location, x='metro_population', y='tier1_price',
+                        labels={'metro_population': 'Metro Population', 'tier1_price': 'Base Membership Price ($)'},
+                        height=400)
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Q24: Tier structure distribution
+    st.markdown("---")
+    st.subheader("Q24: How many tiers do studios offer?")
+    
+    if 'tier_structure' in df.columns:
+        tier_counts = df['tier_structure'].value_counts().reset_index()
+        tier_counts.columns = ['Tier Structure', 'Count']
+        
+        tier_order = ["Single tier", "Two tiers", "Three tiers", "Four or more"]
+        tier_counts['Tier Structure'] = pd.Categorical(
+            tier_counts['Tier Structure'],
+            categories=tier_order,
+            ordered=True
+        )
+        tier_counts = tier_counts.sort_values('Tier Structure')
+        
+        chart = alt.Chart(tier_counts).mark_bar().encode(
+            y=alt.Y('Tier Structure:N', sort=tier_order),
+            x=alt.X('Count:Q'),
+            tooltip=['Tier Structure', 'Count'],
+            color=alt.value('#1f77b4')
+        ).properties(height=250)
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        multi_tier = tier_counts[tier_counts['Tier Structure'] != 'Single tier']['Count'].sum()
+        total = tier_counts['Count'].sum()
+        pct_multi = (multi_tier / total * 100) if total > 0 else 0
+        
+        st.caption(f"{pct_multi:.0f}% of studios offer multiple membership tiers")
+    
+    # Q25-Q26: Price gaps between tiers
+    st.markdown("---")
+    st.subheader("Q25-Q26: What are typical price differences between tiers?")
+    
+    df_tiers = df.copy()
+    for col in ['tier1_price', 'tier2_price', 'tier3_price', 'tier4_price']:
+        df_tiers[col] = pd.to_numeric(df_tiers[col], errors='coerce')
+    
+    df_multi = df_tiers[
+        (df_tiers['tier_structure'] != 'Single tier') & 
+        df_tiers['tier1_price'].notna() & 
+        df_tiers['tier2_price'].notna()
+    ].copy()
+    
+    if len(df_multi) > 0:
+        df_multi['tier2_gap'] = df_multi['tier2_price'] - df_multi['tier1_price']
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Q25: Tier 1 → Tier 2 Price Jump**")
+            
+            gap_data = df_multi[df_multi['tier2_gap'].notna()]
+            if len(gap_data) > 0:
+                chart = alt.Chart(gap_data).mark_bar().encode(
+                    x=alt.X('tier2_gap:Q', bin=alt.Bin(step=25), 
+                           title='Price Increase ($)'),
+                    y=alt.Y('count()', title='Studios'),
+                    color=alt.value('#2ca02c')
+                ).properties(height=250)
+                
+                st.altair_chart(chart, use_container_width=True)
+                
+                median_gap = gap_data['tier2_gap'].median()
+                st.metric("Median Increase", f"${median_gap:.0f}")
+        
+        with col2:
+            df_three = df_multi[
+                (df_multi['tier_structure'].isin(['Three tiers', 'Four or more'])) &
+                df_multi['tier3_price'].notna()
+            ].copy()
+            
+            if len(df_three) > 0:
+                st.markdown("**Q26: Tier 2 → Tier 3 Price Jump**")
+                
+                df_three['tier3_gap'] = df_three['tier3_price'] - df_three['tier2_price']
+                gap3_data = df_three[df_three['tier3_gap'].notna()]
+                
+                if len(gap3_data) > 0:
+                    chart = alt.Chart(gap3_data).mark_bar().encode(
+                        x=alt.X('tier3_gap:Q', bin=alt.Bin(step=25),
+                               title='Price Increase ($)'),
+                        y=alt.Y('count()', title='Studios'),
+                        color=alt.value('#ff7f0e')
+                    ).properties(height=250)
+                    
+                    st.altair_chart(chart, use_container_width=True)
+                    
+                    median_gap3 = gap3_data['tier3_gap'].median()
+                    st.metric("Median Increase", f"${median_gap3:.0f}")
+    
+    # Q27: Pricing vs competitors
+    st.markdown("---")
+    st.subheader("Q27: How do studios price vs. competitors?")
+    
+    if 'pricing_vs_competitors' in df.columns:
+        pricing_comp = df['pricing_vs_competitors'].value_counts().reset_index()
+        pricing_comp.columns = ['Pricing Position', 'Count']
+        
+        price_order = [
+            "Significantly lower",
+            "Somewhat lower",
+            "About the same",
+            "Somewhat higher",
+            "Significantly higher",
+            "Don't know/No competitors"
+        ]
+        
+        pricing_comp['Pricing Position'] = pd.Categorical(
+            pricing_comp['Pricing Position'],
+            categories=price_order,
+            ordered=True
+        )
+        pricing_comp = pricing_comp.sort_values('Pricing Position')
+        
+        chart = alt.Chart(pricing_comp).mark_bar().encode(
+            y=alt.Y('Pricing Position:N', sort=price_order),
+            x=alt.X('Count:Q'),
+            tooltip=['Pricing Position', 'Count'],
+            color=alt.value('#9467bd')
+        ).properties(height=250)
+        
+        st.altair_chart(chart, use_container_width=True)
+
+
+def show_materials_services_pricing(df, highlight_studio=None):
+    """Section 6: Materials & Services Pricing (Q28-Q32)"""
+    
+    st.header("🏺 Section 6: Materials & Services Pricing")
+    
+    # Q28: Clay pricing
+    st.subheader("Q28: What do studios charge for clay?")
+    
+    df_clay = df.copy()
+    df_clay['clay_price'] = pd.to_numeric(df_clay['clay_price'], errors='coerce')
+    df_clay = df_clay[df_clay['clay_price'].notna() & (df_clay['clay_price'] > 0)]
+    
+    if len(df_clay) > 0:
+        chart = alt.Chart(df_clay).mark_bar().encode(
+            x=alt.X('clay_price:Q', bin=alt.Bin(step=5), 
+                   title='Clay Price per 25lb Bag ($)'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#a52a2a')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("25th %ile", f"${df_clay['clay_price'].quantile(0.25):.0f}")
+        with col2:
+            st.metric("Median", f"${df_clay['clay_price'].median():.0f}")
+        with col3:
+            st.metric("75th %ile", f"${df_clay['clay_price'].quantile(0.75):.0f}")
+    
+    # Q29: Clay types offered
+    st.markdown("---")
+    st.subheader("Q29: How many clay types do studios offer?")
+    
+    if 'clay_types' in df.columns:
+        df_types = df.copy()
+        df_types['clay_types'] = pd.to_numeric(df_types['clay_types'], errors='coerce')
+        df_types = df_types[df_types['clay_types'].notna()]
+        
+        if len(df_types) > 0:
+            chart = alt.Chart(df_types).mark_bar().encode(
+                x=alt.X('clay_types:Q', bin=alt.Bin(step=1), title='Number of Clay Types'),
+                y=alt.Y('count()', title='Number of Studios'),
+                color=alt.value('#8b4513')
+            ).properties(height=300)
+            
+            st.altair_chart(chart, use_container_width=True)
+            
+            median_types = df_types['clay_types'].median()
+            st.metric("Median Options", f"{median_types:.0f} types")
+    
+    # Q30: Firing fee models
+    st.markdown("---")
+    st.subheader("Q30: What firing fee models do studios use?")
+    
+    if 'firing_model' in df.columns:
+        firing_counts = df['firing_model'].value_counts().reset_index()
+        firing_counts.columns = ['Firing Model', 'Count']
+        
+        chart = alt.Chart(firing_counts).mark_bar().encode(
+            x=alt.X('Count:Q'),
+            y=alt.Y('Firing Model:N', sort='-x'),
+            tooltip=['Firing Model', 'Count'],
+            color=alt.value('#ff7f0e')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+    
+    # Q31: Class pricing
+    st.markdown("---")
+    st.subheader("Q31: What do studios charge for classes?")
+    
+    df_classes = df.copy()
+    df_classes['class_price'] = pd.to_numeric(df_classes['class_price'], errors='coerce')
+    df_classes = df_classes[df_classes['class_price'].notna() & (df_classes['class_price'] > 0)]
+    
+    if len(df_classes) > 0:
+        chart = alt.Chart(df_classes).mark_bar().encode(
+            x=alt.X('class_price:Q', bin=alt.Bin(step=50), title='Class Price ($)'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#8c564b')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        median_price = df_classes['class_price'].median()
+        st.metric("Median Class Price", f"${median_price:.0f}")
+    
+    # Q32: Event pricing
+    st.markdown("---")
+    st.subheader("Q32: What do studios charge for events?")
+    
+    df_events = df.copy()
+    df_events['event_price'] = pd.to_numeric(df_events['event_price'], errors='coerce')
+    df_events = df_events[df_events['event_price'].notna() & (df_events['event_price'] > 0)]
+    
+    if len(df_events) > 0:
+        chart = alt.Chart(df_events).mark_bar().encode(
+            x=alt.X('event_price:Q', bin=alt.Bin(step=10), 
+                   title='Event Price per Person ($)'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#e377c2')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Median", f"${df_events['event_price'].median():.0f}/person")
+        with col2:
+            st.metric("Range", f"${df_events['event_price'].min():.0f} - ${df_events['event_price'].max():.0f}")
+
+
+def show_revenue_mix(df, highlight_studio=None):
+    """Section 7: Revenue Mix (Q33-Q35)"""
+    
+    st.header("📊 Section 7: Revenue Mix")
+    
+    # Q33: Average revenue composition
+    st.subheader("Q33: Where does revenue come from?")
     
     if 'revenue_pcts' in df.columns:
         revenue_data = []
@@ -596,7 +1104,7 @@ def show_financial_performance(df, highlight_studio=None):
                 for source, pct in rev_dict.items():
                     if isinstance(pct, (int, float)) and pct > 0:
                         revenue_data.append({'source': source, 'percentage': pct})
-        
+
         if revenue_data:
             rev_df = pd.DataFrame(revenue_data)
             avg_rev = rev_df.groupby('source')['percentage'].mean().reset_index()
@@ -612,173 +1120,339 @@ def show_financial_performance(df, highlight_studio=None):
             }
             avg_rev['Revenue Source'] = avg_rev['Revenue Source'].map(lambda x: name_map.get(x, x.title()))
             
-            fig = px.pie(avg_rev, values='Average %', names='Revenue Source', 
-                        title='Average Revenue Mix', height=400)
+            fig = px.pie(
+                avg_rev, values='Average %', names='Revenue Source',
+                title='Average Revenue Mix', height=400
+            )
             st.plotly_chart(fig, use_container_width=True)
+        
+        # Build revenue_by_profit from df before plotting
+        if 'revenue_pcts' in df.columns and 'profitability_status' in df.columns:
+            revenue_by_profit = []
+            for idx, row in df.iterrows():
+                rev_dict = _parse_jsonish(row['revenue_pcts'])
+                status = row['profitability_status']
+                if isinstance(rev_dict, dict) and isinstance(status, str):
+                    for source, pct in rev_dict.items():
+                        if isinstance(pct, (int, float)) and pct > 0:
+                            revenue_by_profit.append(
+                                {'source': source, 'percentage': pct, 'status': status}
+                            )
+
+            if revenue_by_profit:
+                rev_df = pd.DataFrame(revenue_by_profit)
+                avg_rev = rev_df.groupby(['status', 'source'])['percentage'].mean().reset_index()
+
+                name_map = {
+                    'membership': 'Membership',
+                    'clay': 'Clay Sales',
+                    'firing': 'Firing Fees',
+                    'classes': 'Classes',
+                    'events': 'Events',
+                    'other': 'Other'
+                }
+                avg_rev['source'] = avg_rev['source'].map(lambda x: name_map.get(x, x.title()))
+
+                fig = px.bar(
+                    avg_rev,
+                    x='source',
+                    y='percentage',
+                    color='status',
+                    barmode='group',
+                    title='Revenue Mix by Profitability Status',
+                    labels={'percentage': 'Average %', 'source': 'Revenue Source'},
+                    height=400
+                )
+                st.plotly_chart(fig, use_container_width=True)
+    
+    # Q35: Multi-tier pricing impact
+    st.markdown("---")
+    st.subheader("Q35: Does having multiple tiers increase revenue?")
+    
+    if 'tier_structure' in df.columns and 'monthly_revenue_range' in df.columns:
+        tier_revenue = df[df['tier_structure'].notna() & df['monthly_revenue_range'].notna()].copy()
+        
+        if len(tier_revenue) > 0:
+            tier_rev_counts = tier_revenue.groupby(['tier_structure', 'monthly_revenue_range']).size().reset_index(name='count')
+            
+            revenue_order = [
+                "Under $5,000",
+                "$5,000-$10,000",
+                "$10,000-$20,000",
+                "$20,000-$35,000",
+                "$35,000-$50,000",
+                "$50,000-$75,000",
+                "Over $75,000"
+            ]
+            
+            chart = alt.Chart(tier_rev_counts).mark_bar().encode(
+                x=alt.X('tier_structure:N', title='Tier Structure'),
+                y=alt.Y('count:Q', title='Number of Studios'),
+                color=alt.Color('monthly_revenue_range:N', 
+                              title='Revenue Range',
+                              sort=revenue_order),
+                tooltip=['tier_structure', 'monthly_revenue_range', 'count']
+            ).properties(height=400)
+            
+            st.altair_chart(chart, use_container_width=True)
 
 
-def show_member_behavior(df, highlight_studio=None):
-    """Section 5: Member Behavior"""
+# ===========================================================================
+# PART 4: COSTS & PROFITABILITY
+# ===========================================================================
+
+def show_operating_costs(df, highlight_studio=None):
+    """Section 8: Operating Costs (Q36-Q40)"""
     
-    st.header("👥 Section 5: Member Behavior")
+    st.header("💵 Section 8: Operating Costs")
     
-    # Q24: What's a normal churn rate?
-    st.subheader("Q11: Monthly churn rate distribution")
+    df_costs = df.copy()
+    for col in ['rent', 'electricity', 'water', 'insurance', 'buildout_cost_total', 'space_sqft']:
+        df_costs[col] = pd.to_numeric(df_costs[col], errors='coerce')
     
-    # Ensure numeric type
-    df_churn = df.copy()
-    df_churn['monthly_churn'] = pd.to_numeric(df_churn['monthly_churn'], errors='coerce')
-    df_churn = df_churn[df_churn['monthly_churn'].notna()]
+    # Q36: Rent distribution
+    st.subheader("Q36: What does rent cost?")
     
-    if len(df_churn) > 0:
-        chart = alt.Chart(df_churn).mark_bar().encode(
-            x=alt.X('monthly_churn:Q', bin=alt.Bin(step=2), title='Monthly Churn Rate (%)'),
+    df_rent = df_costs[df_costs['rent'].notna()]
+    
+    if len(df_rent) > 0:
+        chart = alt.Chart(df_rent).mark_bar().encode(
+            x=alt.X('rent:Q', bin=alt.Bin(step=500), title='Monthly Rent ($)'),
             y=alt.Y('count()', title='Number of Studios'),
-            color=alt.value('#8c564b')
-        ).properties(height=350)
+            color=alt.value('#d62728')
+        ).properties(height=300)
         
         st.altair_chart(chart, use_container_width=True)
         
-        median_churn = df_churn['monthly_churn'].median()
-        st.metric("Median Monthly Churn", f"{median_churn:.1f}%")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("25th %ile", f"${df_rent['rent'].quantile(0.25):,.0f}/mo")
+        with col2:
+            st.metric("Median", f"${df_rent['rent'].median():,.0f}/mo")
+        with col3:
+            st.metric("75th %ile", f"${df_rent['rent'].quantile(0.75):,.0f}/mo")
+    
+    # Q37: Rent per member
+    st.markdown("---")
+    st.subheader("Q37: How much rent per member?")
+    
+    df_costs['rent_per_member'] = pd.to_numeric(df_costs['rent_per_member'], errors='coerce')
+    df_rent_member = df_costs[df_costs['rent_per_member'].notna()]
+    
+    if len(df_rent_member) > 0:
+        chart = alt.Chart(df_rent_member).mark_bar().encode(
+            x=alt.X('rent_per_member:Q', bin=alt.Bin(step=50), title='Monthly Rent per Member ($)'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#bcbd22')
+        ).properties(height=300)
         
-        if highlight_studio and highlight_studio in df_churn['studio_name'].values:
-            your_churn = df_churn[df_churn['studio_name'] == highlight_studio]['monthly_churn'].iloc[0]
-            st.info(f"Your churn rate: {your_churn:.1f}% ({'higher' if your_churn > median_churn else 'lower'} than median)")
-
-
-def show_events_analysis(df, highlight_studio=None):
-    """Section 6: Events & Parties Analysis"""
-    
-    st.header("🎉 Section 6: Events & Parties")
-    
-    # What % offer events?
-    st.subheader("Q12: What percentage of studios offer events/PYOP?")
-    
-    if 'offers_events' in df.columns:
-        def _to_bool(s):
-            if pd.api.types.is_bool_dtype(s):
-                return s.astype(int)
-            s = s.astype(str).str.strip().str.lower()
-            mapping = {'yes': 1, 'y': 1, 'true': 1, 't': 1, '1': 1, 'no': 0, 'n': 0, 'false': 0, 'f': 0, '0': 0}
-            return s.map(mapping)
+        st.altair_chart(chart, use_container_width=True)
         
-        events01 = _to_bool(df['offers_events'])
-        valid = events01.notna().sum()
-        if valid > 0:
-            pct_offering = (events01.sum() / valid) * 100
+        median_rent = df_rent_member['rent_per_member'].median()
+        st.metric("Median Rent per Member", f"${median_rent:.0f}/member/month")
+    
+    # Q38: Utilities
+    st.markdown("---")
+    st.subheader("Q38: What do utilities cost?")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Electricity**")
+        df_elec = df_costs[df_costs['electricity'].notna() & (df_costs['electricity'] > 0)]
+        if len(df_elec) > 0:
+            median_elec = df_elec['electricity'].median()
+            st.metric("Median", f"${median_elec:.0f}/mo")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Studios Offering Events", f"{pct_offering:.0f}%")
+            chart = alt.Chart(df_elec).mark_bar().encode(
+                x=alt.X('electricity:Q', bin=alt.Bin(step=100), 
+                       title='Monthly Electricity ($)'),
+                y=alt.Y('count()', title='Studios'),
+                color=alt.value('#ff7f0e')
+            ).properties(height=250)
+            st.altair_chart(chart, use_container_width=True)
+    
+    with col2:
+        st.markdown("**Water/Sewer**")
+        df_water = df_costs[df_costs['water'].notna() & (df_costs['water'] > 0)]
+        if len(df_water) > 0:
+            median_water = df_water['water'].median()
+            st.metric("Median", f"${median_water:.0f}/mo")
             
-            # Event pricing
-            df_events = df[(events01 == 1)].copy()
-            df_events['event_price'] = pd.to_numeric(df_events['event_price'], errors='coerce')
-            df_events = df_events[df_events['event_price'].notna()]
+            chart = alt.Chart(df_water).mark_bar().encode(
+                x=alt.X('water:Q', bin=alt.Bin(step=50), 
+                       title='Monthly Water ($)'),
+                y=alt.Y('count()', title='Studios'),
+                color=alt.value('#2ca02c')
+            ).properties(height=250)
+            st.altair_chart(chart, use_container_width=True)
+    
+    # Q39: Insurance
+    st.markdown("---")
+    st.subheader("Q39: What does insurance cost?")
+    
+    df_insurance = df_costs[df_costs['insurance'].notna() & (df_costs['insurance'] > 0)]
+    
+    if len(df_insurance) > 0:
+        chart = alt.Chart(df_insurance).mark_bar().encode(
+            x=alt.X('insurance:Q', bin=alt.Bin(step=50), title='Monthly Insurance ($)'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#9467bd')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("25th %ile", f"${df_insurance['insurance'].quantile(0.25):.0f}/mo")
+        with col2:
+            st.metric("Median", f"${df_insurance['insurance'].median():.0f}/mo")
+        with col3:
+            st.metric("75th %ile", f"${df_insurance['insurance'].quantile(0.75):.0f}/mo")
+    
+    # Q40: Build-out costs
+    st.markdown("---")
+    st.subheader("Q40: How much do leasehold improvements cost?")
+    
+    df_buildout = df_costs[df_costs['buildout_cost_total'].notna() & 
+                           (df_costs['buildout_cost_total'] > 0)]
+    
+    if len(df_buildout) > 0:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            chart = alt.Chart(df_buildout).mark_bar().encode(
+                x=alt.X('buildout_cost_total:Q', bin=alt.Bin(step=25000),
+                       title='Build-Out Cost ($)'),
+                y=alt.Y('count()', title='Number of Studios'),
+                color=alt.value('#e377c2')
+            ).properties(height=300, title='Total Build-Out Costs')
             
-            if len(df_events) > 0:
-                with col2:
-                    median_price = df_events['event_price'].median()
-                    st.metric("Median Event Price", f"${median_price:.0f}/person")
-                
-                chart = alt.Chart(df_events).mark_bar().encode(
-                    x=alt.X('event_price:Q', bin=alt.Bin(step=10), title='Price per Person ($)'),
+            st.altair_chart(chart, use_container_width=True)
+        
+        with col2:
+            df_buildout['cost_per_sqft'] = (df_buildout['buildout_cost_total'] / 
+                                           df_buildout['space_sqft'])
+            df_buildout_sqft = df_buildout[df_buildout['cost_per_sqft'].notna()]
+            
+            if len(df_buildout_sqft) > 0:
+                chart = alt.Chart(df_buildout_sqft).mark_bar().encode(
+                    x=alt.X('cost_per_sqft:Q', bin=alt.Bin(step=25),
+                           title='Cost per Square Foot ($)'),
                     y=alt.Y('count()', title='Number of Studios'),
-                    color=alt.value('#e377c2')
-                ).properties(height=300)
+                    color=alt.value('#bcbd22')
+                ).properties(height=300, title='Build-Out Cost per Sq Ft')
                 
                 st.altair_chart(chart, use_container_width=True)
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            median_total = df_buildout['buildout_cost_total'].median()
+            st.metric("Median Total Cost", f"${median_total:,.0f}")
+        with col2:
+            if 'cost_per_sqft' in df_buildout.columns:
+                median_sqft = df_buildout_sqft['cost_per_sqft'].median()
+                st.metric("Median per Sq Ft", f"${median_sqft:.2f}")
+        with col3:
+            q75 = df_buildout['buildout_cost_total'].quantile(0.75)
+            st.metric("75th Percentile", f"${q75:,.0f}")
 
 
-def show_growth_trajectories(df, highlight_studio=None):
-    """Section 7: Growth & Timeline Analysis"""
+def show_financial_performance(df, highlight_studio=None):
+    """Section 9: Financial Performance (Q41-Q44)"""
     
-    st.header("📈 Section 7: Growth Trajectories")
+    st.header("💰 Section 9: Financial Performance")
     
-    # Q32: How long to reach X members?
-    st.subheader("Q13: How long does it take to reach current membership?")
+    # Q41: Profitability status
+    st.subheader("Q41: What's the profitability status distribution?")
     
-    # Ensure numeric types
-    df_growth = df.copy()
-    df_growth['time_to_members_months'] = pd.to_numeric(df_growth['time_to_members_months'], errors='coerce')
-    df_growth['current_members'] = pd.to_numeric(df_growth['current_members'], errors='coerce')
-    df_growth = df_growth[df_growth['time_to_members_months'].notna() & df_growth['current_members'].notna()]
+    if 'profitability_status' in df.columns:
+        profit_counts = df['profitability_status'].value_counts().reset_index()
+        profit_counts.columns = ['Status', 'Count']
+        
+        chart = alt.Chart(profit_counts).mark_bar().encode(
+            x=alt.X('Count:Q'),
+            y=alt.Y('Status:N', sort='-x'),
+            tooltip=['Status', 'Count'],
+            color=alt.value('#2ca02c')
+        ).properties(height=250)
+        
+        st.altair_chart(chart, use_container_width=True)
     
-    if len(df_growth) > 0:
-        if highlight_studio and highlight_studio in df_growth['studio_name'].values:
-            df_h = df_growth[df_growth['studio_name'] == highlight_studio]
-            df_o = df_growth[df_growth['studio_name'] != highlight_studio]
-        else:
-            df_h = pd.DataFrame()
-            df_o = df_growth
-        
-        fig = go.Figure()
-        
-        fig.add_trace(go.Scatter(
-            x=df_o['time_to_members_months'],
-            y=df_o['current_members'],
-            mode='markers',
-            name='Other Studios',
-            marker=dict(size=10, color='#7f7f7f', opacity=0.6),
-            text=df_o['studio_name'],
-            hovertemplate='<b>Studio %{text}</b><br>Months: %{x}<br>Members: %{y}<extra></extra>'
-        ))
-        
-        if not df_h.empty:
-            fig.add_trace(go.Scatter(
-                x=df_h['time_to_members_months'],
-                y=df_h['current_members'],
-                mode='markers',
-                name=f'Your Studio',
-                marker=dict(size=18, color='#FF4B4B', symbol='star'),
-                hovertemplate='<b>YOUR STUDIO</b><br>Months: %{x}<br>Members: %{y}<extra></extra>'
-            ))
-        
-        # Add trend line
-        z = np.polyfit(df_growth['time_to_members_months'], df_growth['current_members'], 1)
-        p = np.poly1d(z)
-        x_trend = np.linspace(df_growth['time_to_members_months'].min(), 
-                             df_growth['time_to_members_months'].max(), 100)
-        
-        fig.add_trace(go.Scatter(
-            x=x_trend,
-            y=p(x_trend),
-            mode='lines',
-            name='Trend',
-            line=dict(color='gray', dash='dash'),
-            hoverinfo='skip'
-        ))
-        
-        fig.update_layout(
-            xaxis_title='Months to Reach Current Membership',
-            yaxis_title='Current Members',
-            height=500,
-            hovermode='closest'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        median_time = df_growth['time_to_members_months'].median()
-        st.caption(f"Median: {median_time:.0f} months to reach current membership level")
-        
-        if highlight_studio and not df_h.empty:
-            your_time = df_h['time_to_members_months'].iloc[0]
-            your_members = df_h['current_members'].iloc[0]
-            st.info(f"""
-            **Your growth:** Reached {your_members:.0f} members in {your_time:.0f} months
-            - Growth rate: ~{(your_members/your_time if your_time > 0 else 0):.1f} members/month
-            """)
-    
-    # Q33: Startup capital distribution
+    # Q42: Time to profitability
     st.markdown("---")
-    st.subheader("Q14: How much does it cost to start a studio?")
+    st.subheader("Q42: How long until studios become profitable?")
+    
+    if 'time_to_profitability' in df.columns:
+        time_counts = df['time_to_profitability'].value_counts().reset_index()
+        time_counts.columns = ['Time to Profit', 'Count']
+        
+        time_order = [
+            "Under 6 months",
+            "6-12 months",
+            "12-18 months",
+            "18-24 months",
+            "Over 24 months",
+            "Not yet profitable"
+        ]
+        
+        time_counts['Time to Profit'] = pd.Categorical(
+            time_counts['Time to Profit'],
+            categories=time_order,
+            ordered=True
+        )
+        time_counts = time_counts.sort_values('Time to Profit')
+        
+        chart = alt.Chart(time_counts).mark_bar().encode(
+            y=alt.Y('Time to Profit:N', sort=time_order),
+            x=alt.X('Count:Q'),
+            tooltip=['Time to Profit', 'Count'],
+            color=alt.value('#2ca02c')
+        ).properties(height=300)
+        
+        st.altair_chart(chart, use_container_width=True)
+    
+    # Q43: Rent burden
+    st.markdown("---")
+    st.subheader("Q43: What's a sustainable rent burden?")
+    
+    df_rent_burden = df.copy()
+    df_rent_burden['rent'] = pd.to_numeric(df_rent_burden['rent'], errors='coerce')
+    df_rent_burden['current_members'] = pd.to_numeric(df_rent_burden['current_members'], errors='coerce')
+    df_rent_burden['tier1_price'] = pd.to_numeric(df_rent_burden['tier1_price'], errors='coerce')
+    
+    df_rent_burden['est_membership_revenue'] = (df_rent_burden['current_members'] * 
+                                                df_rent_burden['tier1_price'])
+    df_rent_burden['rent_pct'] = (df_rent_burden['rent'] / 
+                                  df_rent_burden['est_membership_revenue'] * 100)
+    
+    df_rent_burden = df_rent_burden[df_rent_burden['rent_pct'].notna() & 
+                                   (df_rent_burden['rent_pct'] > 0) &
+                                   (df_rent_burden['rent_pct'] < 200)]
+    
+    if len(df_rent_burden) > 0 and 'profitability_status' in df_rent_burden.columns:
+        df_plot = df_rent_burden[df_rent_burden['profitability_status'].isin(
+            ['Profitable', 'Breaking even', 'Operating at loss'])]
+        
+        if len(df_plot) > 0:
+            fig = px.box(df_plot,
+                        x='profitability_status',
+                        y='rent_pct',
+                        title='Rent as % of Membership Revenue by Profitability',
+                        labels={'rent_pct': 'Rent (% of Membership Revenue)',
+                               'profitability_status': 'Profitability Status'},
+                        height=400)
+            
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Q44: Startup capital
+    st.markdown("---")
+    st.subheader("Q44: How much startup capital is required?")
     
     if 'startup_capital_range' in df.columns:
         capital_counts = df['startup_capital_range'].value_counts().reset_index()
         capital_counts.columns = ['Capital Range', 'Count']
         
-        # Order the ranges logically
         range_order = [
             "Under $10,000",
             "$10,000-$25,000", 
@@ -806,177 +1480,321 @@ def show_growth_trajectories(df, highlight_studio=None):
         st.altair_chart(chart, use_container_width=True)
 
 
-def show_operational_models(df, highlight_studio=None):
-    """Section 8: Operational Models Comparison"""
+# ===========================================================================
+# PART 5: OPERATIONS
+# ===========================================================================
+
+def show_access_staffing(df, highlight_studio=None):
+    """Section 10: Access & Staffing (Q45-Q47)"""
     
-    st.header("⚙️ Section 8: Operational Models")
+    st.header("⚙️ Section 10: Access & Staffing")
     
-    # Q20: Access models
-    st.subheader("Q15: What access models do studios use?")
+    # Q45: Access models
+    st.subheader("Q45: What access models do studios use?")
     
     if 'access_model' in df.columns:
         access_counts = df['access_model'].value_counts().reset_index()
         access_counts.columns = ['Access Model', 'Count']
         
-        if highlight_studio and highlight_studio in df['studio_name'].values:
-            user_model = df[df['studio_name'] == highlight_studio]['access_model'].iloc[0]
-            access_counts['is_user'] = access_counts['Access Model'] == user_model
-        else:
-            access_counts['is_user'] = False
-        
         chart = alt.Chart(access_counts).mark_bar().encode(
             y=alt.Y('Access Model:N', sort='-x'),
             x=alt.X('Count:Q'),
-            color=alt.condition(
-                alt.datum.is_user == True,
-                alt.value('#FF4B4B'),
-                alt.value('#1f77b4')
-            ),
-            tooltip=['Access Model', 'Count']
+            tooltip=['Access Model', 'Count'],
+            color=alt.value('#1f77b4')
         ).properties(height=250)
         
         st.altair_chart(chart, use_container_width=True)
     
-    # Q22: Staffing patterns
+    # Q46: Staffing patterns
     st.markdown("---")
-    st.subheader("Q16: Do studios have paid staff?")
+    st.subheader("Q46: Do studios have paid staff?")
     
-    if 'has_staff' in df.columns and 'current_members' in df.columns:
+    if 'has_staff' in df.columns:
         def _to_bool(s):
             if pd.api.types.is_bool_dtype(s):
-                return s
+                return s.astype(int)
             s = s.astype(str).str.strip().str.lower()
-            mapping = {'yes': True, 'y': True, 'true': True, 't': True, '1': True, 
-                      'no': False, 'n': False, 'false': False, 'f': False, '0': False}
+            mapping = {
+                "yes": 1, "y": 1, "true": 1, "t": 1, "1": 1,
+                "no": 0,  "n": 0, "false": 0, "f": 0, "0": 0
+            }
             return s.map(mapping)
         
-        df_staff = df.copy()
-        df_staff['has_staff_bool'] = _to_bool(df_staff['has_staff'])
-        df_staff = df_staff[df_staff['has_staff_bool'].notna() & df_staff['current_members'].notna()]
+        staff01 = _to_bool(df['has_staff'])
+        denom = staff01.notna().sum() if staff01.notna().any() else len(df)
+        if denom > 0:
+            pct_with_staff = (staff01.fillna(0).sum() / denom) * 100
+            st.metric("Studios with Paid Staff", f"{pct_with_staff:.0f}%")
+    
+    # Q47: Staff roles (placeholder for more detailed analysis if needed)
+    st.markdown("---")
+    st.subheader("Q47: What are typical staffing patterns by studio size?")
+    st.caption("Analysis of staff hours and roles by member count would go here")
+
+
+def show_kiln_operations(df, highlight_studio=None):
+    """Section 11: Kiln Operations (Q48-Q50)"""
+    
+    st.header("🔥 Section 11: Kiln Operations")
+    
+    # Q48: Kiln utilization
+    st.subheader("Q48: What's typical kiln utilization?")
+    
+    if 'kiln_utilization' in df.columns:
+        df_kiln = df.copy()
+        df_kiln['kiln_utilization'] = pd.to_numeric(df_kiln['kiln_utilization'], errors='coerce')
+        df_kiln = df_kiln[df_kiln['kiln_utilization'].notna()]
         
-        if len(df_staff) > 0:
-            # Scatter: staffing vs studio size
-            if highlight_studio and highlight_studio in df_staff['studio_name'].values:
-                df_h = df_staff[df_staff['studio_name'] == highlight_studio]
-                df_o = df_staff[df_staff['studio_name'] != highlight_studio]
-            else:
-                df_h = pd.DataFrame()
-                df_o = df_staff
+        if len(df_kiln) > 0:
+            chart = alt.Chart(df_kiln).mark_bar().encode(
+                x=alt.X('kiln_utilization:Q', bin=alt.Bin(step=10),
+                       title='Kiln Utilization (%)'),
+                y=alt.Y('count()', title='Number of Studios'),
+                color=alt.value('#ff7f0e')
+            ).properties(height=300)
             
+            st.altair_chart(chart, use_container_width=True)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                median_util = df_kiln['kiln_utilization'].median()
+                st.metric("Median Utilization", f"{median_util:.0f}%")
+            with col2:
+                high_util = (df_kiln['kiln_utilization'] >= 80).sum() / len(df_kiln) * 100
+                st.metric("High Utilization (≥80%)", f"{high_util:.0f}%")
+    
+    # Q49: Kilns per member
+    st.markdown("---")
+    st.subheader("Q49: What's the optimal kiln-to-member ratio?")
+    
+    df_kiln_ratio = df.copy()
+    df_kiln_ratio['num_kilns'] = pd.to_numeric(df_kiln_ratio['num_kilns'], errors='coerce')
+    df_kiln_ratio['current_members'] = pd.to_numeric(df_kiln_ratio['current_members'], errors='coerce')
+    df_kiln_ratio = df_kiln_ratio[df_kiln_ratio['num_kilns'].notna() & 
+                                   df_kiln_ratio['current_members'].notna()]
+    
+    if len(df_kiln_ratio) > 0:
+        df_kiln_ratio['members_per_kiln'] = (df_kiln_ratio['current_members'] / 
+                                             df_kiln_ratio['num_kilns'])
+        median_per_kiln = df_kiln_ratio['members_per_kiln'].median()
+        
+        st.metric("Median Members per Kiln", f"{median_per_kiln:.0f} members/kiln")
+    
+    # Q50: Firing frequency
+    st.markdown("---")
+    st.subheader("Q50: How often do studios fire kilns?")
+    
+    if 'kilns' in df.columns:
+        all_firings = []
+        for idx, row in df.iterrows():
+            kilns_data = _parse_jsonish(row['kilns'])
+            if isinstance(kilns_data, list):
+                for kiln in kilns_data:
+                    if isinstance(kiln, dict) and 'firings' in kiln:
+                        try:
+                            firings = int(kiln['firings'])
+                            all_firings.append(firings)
+                        except (ValueError, TypeError):
+                            pass
+        
+        if all_firings:
+            firings_series = pd.Series(all_firings)
+            
+            chart = alt.Chart(pd.DataFrame({'firings': all_firings})).mark_bar().encode(
+                x=alt.X('firings:Q', bin=alt.Bin(step=2), title='Firings per Month'),
+                y=alt.Y('count()', title='Number of Kilns'),
+                color=alt.value('#d62728')
+            ).properties(height=300)
+            
+            st.altair_chart(chart, use_container_width=True)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Median Firings/Month", f"{firings_series.median():.0f}")
+            with col2:
+                st.metric("Average Firings/Month", f"{firings_series.mean():.1f}")
+
+
+def show_classes_events(df, highlight_studio=None):
+    """Section 12: Classes & Events (Q51-Q53)"""
+    
+    st.header("🎓 Section 12: Classes & Events")
+    
+    # Q51: Class offerings
+    st.subheader("Q51: What percentage of studios offer classes?")
+    
+    if 'offers_classes' in df.columns:
+        def _to_bool(s):
+            if pd.api.types.is_bool_dtype(s):
+                return s.astype(int)
+            s = s.astype(str).str.strip().str.lower()
+            mapping = {'yes': 1, 'y': 1, 'true': 1, 't': 1, '1': 1, 
+                      'no': 0, 'n': 0, 'false': 0, 'f': 0, '0': 0}
+            return s.map(mapping)
+        
+        classes01 = _to_bool(df['offers_classes'])
+        valid = classes01.notna().sum()
+        
+        if valid > 0:
+            pct_offering = (classes01.sum() / valid) * 100
+            st.metric("Studios Offering Classes", f"{pct_offering:.0f}%")
+    
+    # Q52: Class pricing and format
+    st.markdown("---")
+    st.subheader("Q52: What do class formats and pricing look like?")
+    
+    if 'class_format' in df.columns:
+        format_counts = df['class_format'].value_counts().reset_index()
+        format_counts.columns = ['Format', 'Count']
+        
+        chart = alt.Chart(format_counts).mark_bar().encode(
+            x=alt.X('Count:Q'),
+            y=alt.Y('Format:N', sort='-x'),
+            tooltip=['Format', 'Count'],
+            color=alt.value('#8c564b')
+        ).properties(height=250)
+        
+        st.altair_chart(chart, use_container_width=True)
+    
+    # Q53: Event offerings
+    st.markdown("---")
+    st.subheader("Q53: What percentage of studios offer events?")
+    
+    if 'offers_events' in df.columns:
+        events01 = _to_bool(df['offers_events'])
+        valid = events01.notna().sum()
+        
+        if valid > 0:
+            pct_offering_events = (events01.sum() / valid) * 100
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Studios Offering Events", f"{pct_offering_events:.0f}%")
+            
+            with col2:
+                df_events = df[events01 == 1].copy()
+                df_events['events_per_month'] = pd.to_numeric(df_events['events_per_month'], errors='coerce')
+                df_events_clean = df_events[df_events['events_per_month'].notna()]
+                if len(df_events_clean) > 0:
+                    avg_events = df_events_clean['events_per_month'].mean()
+                    st.metric("Avg Events/Month", f"{avg_events:.1f}")
+
+
+def show_amenities(df, highlight_studio=None):
+    """Section 13: Amenities (Q54-Q55)"""
+    
+    st.header("🎁 Section 13: Included Amenities")
+    
+    # Q54: Most common amenities
+    st.subheader("Q54: What amenities do studios include?")
+    
+    if 'included_amenities' in df.columns:
+        all_amenities = []
+        for amenities in df['included_amenities'].dropna():
+            parsed = _parse_jsonish(amenities)
+            if isinstance(parsed, list):
+                all_amenities.extend(parsed)
+            elif isinstance(parsed, str) and parsed:
+                all_amenities.append(parsed)
+        
+        if all_amenities:
+            amenity_counts = pd.Series(all_amenities).value_counts().reset_index()
+            amenity_counts.columns = ['Amenity', 'Count']
+            
+            total_studios = len(df[df['included_amenities'].notna()])
+            amenity_counts['Percentage'] = (amenity_counts['Count'] / total_studios * 100)
+            
+            chart = alt.Chart(amenity_counts.head(15)).mark_bar().encode(
+                y=alt.Y('Amenity:N', sort='-x'),
+                x=alt.X('Percentage:Q', title='% of Studios Offering'),
+                tooltip=['Amenity', 'Count', alt.Tooltip('Percentage:Q', format='.1f')],
+                color=alt.value('#17becf')
+            ).properties(height=400)
+            
+            st.altair_chart(chart, use_container_width=True)
+    
+    # Q55: Amenities vs pricing correlation
+    st.markdown("---")
+    st.subheader("Q55: Do more amenities correlate with higher pricing?")
+    
+    if 'included_amenities' in df.columns and 'tier1_price' in df.columns:
+        df_amenities = df.copy()
+        
+        df_amenities['amenity_count'] = df_amenities['included_amenities'].apply(
+            lambda x: len(_parse_jsonish(x)) if _parse_jsonish(x) and isinstance(_parse_jsonish(x), list) else 0
+        )
+        
+        df_amenities['tier1_price'] = pd.to_numeric(df_amenities['tier1_price'], errors='coerce')
+        
+        df_amenities = df_amenities[df_amenities['amenity_count'].notna() & 
+                                     df_amenities['tier1_price'].notna()]
+        
+        if len(df_amenities) > 0:
             fig = go.Figure()
             
-            # Split by has_staff
-            for has_staff, color, name in [(True, '#ff7f0e', 'Has Staff'), 
-                                           (False, '#2ca02c', 'No Staff')]:
-                subset = df_o[df_o['has_staff_bool'] == has_staff]
-                fig.add_trace(go.Scatter(
-                    x=subset['current_members'],
-                    y=[1 if has_staff else 0] * len(subset),
-                    mode='markers',
-                    name=name,
-                    marker=dict(size=10, color=color, opacity=0.6),
-                    text=subset['studio_name'],
-                    hovertemplate='<b>Studio %{text}</b><br>Members: %{x}<br>' + name + '<extra></extra>'
-                ))
+            if highlight_studio and highlight_studio in df_amenities['studio_name'].values:
+                df_h = df_amenities[df_amenities['studio_name'] == highlight_studio]
+                df_o = df_amenities[df_amenities['studio_name'] != highlight_studio]
+            else:
+                df_h = pd.DataFrame()
+                df_o = df_amenities
+            
+            fig.add_trace(go.Scatter(
+                x=df_o['amenity_count'],
+                y=df_o['tier1_price'],
+                mode='markers',
+                name='Other Studios',
+                marker=dict(size=8, color='#7f7f7f', opacity=0.6)
+            ))
             
             if not df_h.empty:
                 fig.add_trace(go.Scatter(
-                    x=df_h['current_members'],
-                    y=[1 if df_h['has_staff_bool'].iloc[0] else 0],
+                    x=df_h['amenity_count'],
+                    y=df_h['tier1_price'],
                     mode='markers',
                     name='Your Studio',
-                    marker=dict(size=18, color='#FF4B4B', symbol='star'),
-                    hovertemplate='<b>YOUR STUDIO</b><br>Members: %{x}<extra></extra>'
+                    marker=dict(size=15, color='#FF4B4B', symbol='star')
+                ))
+            
+            # Add trend line
+            if len(df_amenities) > 1:
+                z = np.polyfit(df_amenities['amenity_count'], df_amenities['tier1_price'], 1)
+                p = np.poly1d(z)
+                x_trend = np.linspace(df_amenities['amenity_count'].min(), 
+                                     df_amenities['amenity_count'].max(), 100)
+                
+                fig.add_trace(go.Scatter(
+                    x=x_trend,
+                    y=p(x_trend),
+                    mode='lines',
+                    name='Trend',
+                    line=dict(color='red', dash='dash')
                 ))
             
             fig.update_layout(
-                xaxis_title='Current Members',
-                yaxis=dict(
-                    tickvals=[0, 1],
-                    ticktext=['No Paid Staff', 'Has Paid Staff'],
-                    range=[-0.5, 1.5]
-                ),
-                height=300,
-                hovermode='closest'
+                xaxis_title='Number of Included Amenities',
+                yaxis_title='Base Membership Price ($)',
+                height=400
             )
             
             st.plotly_chart(fig, use_container_width=True)
             
-            # Calculate typical staffing threshold
-            df_with_staff = df_staff[df_staff['has_staff_bool'] == True]
-            if len(df_with_staff) > 0:
-                median_members_with_staff = df_with_staff['current_members'].median()
-                st.caption(f"Studios with paid staff have a median of {median_members_with_staff:.0f} members")
+            correlation = df_amenities['amenity_count'].corr(df_amenities['tier1_price'])
+            st.caption(f"Correlation coefficient: {correlation:.3f}")
 
+
+# ===========================================================================
+# PART 6: MARKET & GROWTH
+# ===========================================================================
 
 def show_market_context(df, highlight_studio=None):
-    """Section 9: Market & Competition Context"""
+    """Section 14: Market Context (Q56-Q58)"""
     
-    st.header("🗺️ Section 9: Market & Competition")
+    st.header("🗺️ Section 14: Market Context")
     
-    # Q29: Where are studios located?
-    st.subheader("Q17: Where are studios located?")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if 'area_type' in df.columns:
-            area_counts = df['area_type'].value_counts().reset_index()
-            area_counts.columns = ['Area Type', 'Count']
-            
-            if highlight_studio and highlight_studio in df['studio_name'].values:
-                user_area = df[df['studio_name'] == highlight_studio]['area_type'].iloc[0]
-                area_counts['is_user'] = area_counts['Area Type'] == user_area
-            else:
-                area_counts['is_user'] = False
-            
-            chart = alt.Chart(area_counts).mark_bar().encode(
-                y=alt.Y('Area Type:N', sort='-x'),
-                x=alt.X('Count:Q'),
-                color=alt.condition(
-                    alt.datum.is_user == True,
-                    alt.value('#FF4B4B'),
-                    alt.value('#1f77b4')
-                ),
-                tooltip=['Area Type', 'Count']
-            ).properties(height=250, title='Studio Locations by Area Type')
-            
-            st.altair_chart(chart, use_container_width=True)
-    
-    with col2:
-        if 'metro_population' in df.columns:
-            metro_counts = df['metro_population'].value_counts().reset_index()
-            metro_counts.columns = ['Metro Population', 'Count']
-            
-            # Order logically
-            pop_order = [
-                "Under 50,000",
-                "50,000-100,000",
-                "100,000-250,000",
-                "250,000-500,000",
-                "500,000-1M",
-                "Over 1M"
-            ]
-            
-            metro_counts['Metro Population'] = pd.Categorical(
-                metro_counts['Metro Population'],
-                categories=pop_order,
-                ordered=True
-            )
-            metro_counts = metro_counts.sort_values('Metro Population')
-            
-            chart = alt.Chart(metro_counts).mark_bar().encode(
-                y=alt.Y('Metro Population:N', sort=pop_order),
-                x=alt.X('Count:Q'),
-                tooltip=['Metro Population', 'Count'],
-                color=alt.value('#2ca02c')
-            ).properties(height=250, title='Metro Area Population Distribution')
-            
-            st.altair_chart(chart, use_container_width=True)
-    
-    # Q30: Competition analysis
-    st.markdown("---")
-    st.subheader("Q18: How much competition exists?")
+    # Q56: Area types (already shown in Section 1, Q6 - skip to avoid redundancy)
+    # Q57: Competition density
+    st.subheader("Q57: How much competition exists?")
     
     if 'competing_studios' in df.columns:
         df_comp = df.copy()
@@ -1003,341 +1821,70 @@ def show_market_context(df, highlight_studio=None):
             with col3:
                 pct_high_comp = (df_comp['competing_studios'] >= 3).sum() / len(df_comp) * 100
                 st.metric("High Competition (3+)", f"{pct_high_comp:.0f}%")
-            
-            if highlight_studio and highlight_studio in df_comp['studio_name'].values:
-                your_comp = df_comp[df_comp['studio_name'] == highlight_studio]['competing_studios'].iloc[0]
-                st.info(f"Your competition level: {your_comp:.0f} studios within 20 miles")
     
-    # Q31: Pricing vs competitors
+    # Q58: Market population
     st.markdown("---")
-    st.subheader("Q19: How do studios price vs. competitors?")
+    st.subheader("Q58: What's the market population distribution?")
     
-    if 'pricing_vs_competitors' in df.columns:
-        pricing_comp = df['pricing_vs_competitors'].value_counts().reset_index()
-        pricing_comp.columns = ['Pricing Position', 'Count']
+    if 'market_population' in df.columns:
+        population_counts = df['market_population'].value_counts().reset_index()
+        population_counts.columns = ['Market Population', 'Count']
         
-        # Order logically
-        price_order = [
-            "Significantly lower",
-            "Somewhat lower",
-            "About the same",
-            "Somewhat higher",
-            "Significantly higher",
-            "Don't know/No competitors"
+        pop_order = [
+            "Under 10,000",
+            "10,000-50,000",
+            "50,000-100,000",
+            "100,000-250,000",
+            "250,000-500,000",
+            "Over 500,000"
         ]
         
-        pricing_comp['Pricing Position'] = pd.Categorical(
-            pricing_comp['Pricing Position'],
-            categories=price_order,
+        population_counts['Market Population'] = pd.Categorical(
+            population_counts['Market Population'],
+            categories=pop_order,
             ordered=True
         )
-        pricing_comp = pricing_comp.sort_values('Pricing Position')
+        population_counts = population_counts.sort_values('Market Population')
         
-        if highlight_studio and highlight_studio in df['studio_name'].values:
-            user_pricing = df[df['studio_name'] == highlight_studio]['pricing_vs_competitors'].iloc[0]
-            pricing_comp['is_user'] = pricing_comp['Pricing Position'] == user_pricing
-        else:
-            pricing_comp['is_user'] = False
-        
-        chart = alt.Chart(pricing_comp).mark_bar().encode(
-            y=alt.Y('Pricing Position:N', sort=price_order),
+        chart = alt.Chart(population_counts).mark_bar().encode(
+            y=alt.Y('Market Population:N', sort=pop_order),
             x=alt.X('Count:Q'),
-            color=alt.condition(
-                alt.datum.is_user == True,
-                alt.value('#FF4B4B'),
-                alt.value('#9467bd')
-            ),
-            tooltip=['Pricing Position', 'Count']
-        ).properties(height=250)
+            tooltip=['Market Population', 'Count'],
+            color=alt.value('#2ca02c')
+        ).properties(height=300, title='Population within 10 Miles')
         
         st.altair_chart(chart, use_container_width=True)
 
 
-def show_classes_workshops(df, highlight_studio=None):
-    """Section 10: Classes & Workshops Detail"""
+def show_member_dynamics(df, highlight_studio=None):
+    """Section 15: Member Dynamics (Q59-Q61)"""
     
-    st.header("🎓 Section 10: Classes & Workshops")
+    st.header("🔄 Section 15: Member Dynamics")
     
-    # Q35: What % offer classes?
-    st.subheader("Q20: What percentage of studios offer classes?")
+    # Q59: Churn rate distribution
+    st.subheader("Q59: What's typical monthly churn?")
     
-    if 'offers_classes' in df.columns:
-        def _to_bool(s):
-            if pd.api.types.is_bool_dtype(s):
-                return s.astype(int)
-            s = s.astype(str).str.strip().str.lower()
-            mapping = {'yes': 1, 'y': 1, 'true': 1, 't': 1, '1': 1, 
-                      'no': 0, 'n': 0, 'false': 0, 'f': 0, '0': 0}
-            return s.map(mapping)
+    df_churn = df.copy()
+    df_churn['monthly_churn'] = pd.to_numeric(df_churn['monthly_churn'], errors='coerce')
+    df_churn = df_churn[df_churn['monthly_churn'].notna()]
+    
+    if len(df_churn) > 0:
+        chart = alt.Chart(df_churn).mark_bar().encode(
+            x=alt.X('monthly_churn:Q', bin=alt.Bin(step=2), title='Monthly Churn Rate (%)'),
+            y=alt.Y('count()', title='Number of Studios'),
+            color=alt.value('#8c564b')
+        ).properties(height=300)
         
-        classes01 = _to_bool(df['offers_classes'])
-        valid = classes01.notna().sum()
+        st.altair_chart(chart, use_container_width=True)
         
-        if valid > 0:
-            pct_offering = (classes01.sum() / valid) * 100
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Studios Offering Classes", f"{pct_offering:.0f}%")
-            
-            # Q36: Class pricing
-            df_classes = df[classes01 == 1].copy()
-            df_classes['class_price'] = pd.to_numeric(df_classes['class_price'], errors='coerce')
-            df_classes['class_weeks'] = pd.to_numeric(df_classes['class_weeks'], errors='coerce')
-            
-            if 'class_price' in df_classes.columns and len(df_classes[df_classes['class_price'].notna()]) > 0:
-                with col2:
-                    median_price = df_classes['class_price'].median()
-                    st.metric("Median Class Price", f"${median_price:.0f}")
-            
-            st.markdown("---")
-            st.subheader("Q21: Class pricing by length")
-            
-            df_class_price = df_classes[df_classes['class_price'].notna() & 
-                                       df_classes['class_weeks'].notna()]
-            
-            if len(df_class_price) > 0:
-                # Scatter: price vs weeks
-                if highlight_studio and highlight_studio in df_class_price['studio_name'].values:
-                    df_h = df_class_price[df_class_price['studio_name'] == highlight_studio]
-                    df_o = df_class_price[df_class_price['studio_name'] != highlight_studio]
-                else:
-                    df_h = pd.DataFrame()
-                    df_o = df_class_price
-                
-                fig = go.Figure()
-                
-                fig.add_trace(go.Scatter(
-                    x=df_o['class_weeks'],
-                    y=df_o['class_price'],
-                    mode='markers',
-                    name='Other Studios',
-                    marker=dict(size=10, color='#8c564b', opacity=0.6),
-                    text=df_o['studio_name'],
-                    hovertemplate='<b>Studio %{text}</b><br>Weeks: %{x}<br>Price: $%{y}<extra></extra>'
-                ))
-                
-                if not df_h.empty:
-                    fig.add_trace(go.Scatter(
-                        x=df_h['class_weeks'],
-                        y=df_h['class_price'],
-                        mode='markers',
-                        name='Your Studio',
-                        marker=dict(size=18, color='#FF4B4B', symbol='star'),
-                        hovertemplate='<b>YOUR STUDIO</b><br>Weeks: %{x}<br>Price: $%{y}<extra></extra>'
-                    ))
-                
-                fig.update_layout(
-                    xaxis_title='Class Length (Weeks)',
-                    yaxis_title='Class Price ($)',
-                    height=400
-                )
-                
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Calculate price per week
-                df_class_price['price_per_week'] = df_class_price['class_price'] / df_class_price['class_weeks']
-                median_per_week = df_class_price['price_per_week'].median()
-                
-                st.caption(f"Median price per week: ${median_per_week:.0f}/week")
-
-
-def show_capacity_waitlists(df, highlight_studio=None):
-    """Section 11: Capacity Utilization & Waitlists"""
+        median_churn = df_churn['monthly_churn'].median()
+        st.metric("Median Monthly Churn", f"{median_churn:.1f}%")
     
-    st.header("📊 Section 11: Capacity & Waitlists")
-    
-    # Q40: Capacity utilization
-    st.subheader("Q22: What's your capacity utilization?")
-    
-    if 'capacity_utilization' in df.columns:
-        df_cap = df.copy()
-        df_cap['capacity_utilization'] = pd.to_numeric(df_cap['capacity_utilization'], errors='coerce')
-        df_cap = df_cap[df_cap['capacity_utilization'].notna()]
-        
-        if len(df_cap) > 0:
-            chart = alt.Chart(df_cap).mark_bar().encode(
-                x=alt.X('capacity_utilization:Q', bin=alt.Bin(step=10), 
-                       title='Capacity Utilization (%)'),
-                y=alt.Y('count()', title='Number of Studios'),
-                color=alt.value('#17becf')
-            ).properties(height=300)
-            
-            st.altair_chart(chart, use_container_width=True)
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                median_cap = df_cap['capacity_utilization'].median()
-                st.metric("Median Capacity", f"{median_cap:.0f}%")
-            with col2:
-                high_cap = (df_cap['capacity_utilization'] >= 80).sum() / len(df_cap) * 100
-                st.metric("High Utilization (≥80%)", f"{high_cap:.0f}%")
-            with col3:
-                low_cap = (df_cap['capacity_utilization'] < 50).sum() / len(df_cap) * 100
-                st.metric("Low Utilization (<50%)", f"{low_cap:.0f}%")
-            
-            if highlight_studio and highlight_studio in df_cap['studio_name'].values:
-                your_cap = df_cap[df_cap['studio_name'] == highlight_studio]['capacity_utilization'].iloc[0]
-                st.info(f"""
-                Your capacity utilization: {your_cap:.0f}%
-                - {'Consider expansion or raising prices' if your_cap >= 80 else 'Room to grow membership' if your_cap < 60 else 'Healthy utilization level'}
-                """)
-    
-    # Q3: Waitlists
+    # Q60: Churn reasons
     st.markdown("---")
-    st.subheader("Q23: At what member density do studios develop waitlists?")
-    
-    if 'has_waitlist' in df.columns:
-        def _to_bool(s):
-            if pd.api.types.is_bool_dtype(s):
-                return s
-            s = s.astype(str).str.strip().str.lower()
-            mapping = {'yes': True, 'y': True, 'true': True, 't': True, '1': True,
-                      'no': False, 'n': False, 'false': False, 'f': False, '0': False}
-            return s.map(mapping)
-        
-        df_wait = df.copy()
-        df_wait['has_waitlist_bool'] = _to_bool(df_wait['has_waitlist'])
-        df_wait['members_per_wheel'] = pd.to_numeric(df_wait['members_per_wheel'], errors='coerce')
-        df_wait = df_wait[df_wait['has_waitlist_bool'].notna() & 
-                         df_wait['members_per_wheel'].notna()]
-        
-        if len(df_wait) > 0:
-            # Scatter showing waitlist vs member density
-            if highlight_studio and highlight_studio in df_wait['studio_name'].values:
-                df_h = df_wait[df_wait['studio_name'] == highlight_studio]
-                df_o = df_wait[df_wait['studio_name'] != highlight_studio]
-            else:
-                df_h = pd.DataFrame()
-                df_o = df_wait
-            
-            fig = go.Figure()
-            
-            # Split by waitlist status
-            for has_wait, color, name in [(True, '#d62728', 'Has Waitlist'),
-                                         (False, '#2ca02c', 'No Waitlist')]:
-                subset = df_o[df_o['has_waitlist_bool'] == has_wait]
-                if len(subset) > 0:
-                    fig.add_trace(go.Scatter(
-                        x=subset['members_per_wheel'],
-                        y=[1 if has_wait else 0] * len(subset),
-                        mode='markers',
-                        name=name,
-                        marker=dict(size=10, color=color, opacity=0.6),
-                        text=subset['studio_name'],
-                        hovertemplate='<b>Studio %{text}</b><br>Members/Wheel: %{x:.1f}<br>' + 
-                                    name + '<extra></extra>'
-                    ))
-            
-            if not df_h.empty:
-                fig.add_trace(go.Scatter(
-                    x=df_h['members_per_wheel'],
-                    y=[1 if df_h['has_waitlist_bool'].iloc[0] else 0],
-                    mode='markers',
-                    name='Your Studio',
-                    marker=dict(size=18, color='#FF4B4B', symbol='star'),
-                    hovertemplate='<b>YOUR STUDIO</b><br>Members/Wheel: %{x:.1f}<extra></extra>'
-                ))
-            
-            fig.update_layout(
-                xaxis_title='Members per Wheel',
-                yaxis=dict(
-                    tickvals=[0, 1],
-                    ticktext=['No Waitlist', 'Has Waitlist'],
-                    range=[-0.5, 1.5]
-                ),
-                height=300
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Calculate threshold
-            waitlist_studios = df_wait[df_wait['has_waitlist_bool'] == True]
-            no_waitlist_studios = df_wait[df_wait['has_waitlist_bool'] == False]
-            
-            if len(waitlist_studios) > 0:
-                median_with_wait = waitlist_studios['members_per_wheel'].median()
-                st.caption(f"Studios with waitlists have a median of {median_with_wait:.1f} members/wheel")
-            
-            if len(no_waitlist_studios) > 0:
-                median_without_wait = no_waitlist_studios['members_per_wheel'].median()
-                st.caption(f"Studios without waitlists have a median of {median_without_wait:.1f} members/wheel")
-
-
-def show_buildout_costs(df, highlight_studio=None):
-    """Section 12: Build-Out Investment Analysis"""
-    
-    st.header("🔨 Section 12: Build-Out Investment")
-    
-    # Q33 (cont): Build-out costs
-    st.subheader("Q24: How much do leasehold improvements cost?")
-    
-    if 'buildout_cost_total' in df.columns:
-        df_buildout = df.copy()
-        df_buildout['buildout_cost_total'] = pd.to_numeric(df_buildout['buildout_cost_total'], 
-                                                           errors='coerce')
-        df_buildout['space_sqft'] = pd.to_numeric(df_buildout['space_sqft'], errors='coerce')
-        df_buildout = df_buildout[df_buildout['buildout_cost_total'].notna() & 
-                                 (df_buildout['buildout_cost_total'] > 0)]
-        
-        if len(df_buildout) > 0:
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Histogram of total costs
-                chart = alt.Chart(df_buildout).mark_bar().encode(
-                    x=alt.X('buildout_cost_total:Q', bin=alt.Bin(step=25000),
-                           title='Build-Out Cost ($)'),
-                    y=alt.Y('count()', title='Number of Studios'),
-                    color=alt.value('#e377c2')
-                ).properties(height=300, title='Total Build-Out Costs')
-                
-                st.altair_chart(chart, use_container_width=True)
-            
-            with col2:
-                # Calculate cost per sqft
-                df_buildout['cost_per_sqft'] = (df_buildout['buildout_cost_total'] / 
-                                               df_buildout['space_sqft'])
-                df_buildout_sqft = df_buildout[df_buildout['cost_per_sqft'].notna()]
-                
-                if len(df_buildout_sqft) > 0:
-                    chart = alt.Chart(df_buildout_sqft).mark_bar().encode(
-                        x=alt.X('cost_per_sqft:Q', bin=alt.Bin(step=25),
-                               title='Cost per Square Foot ($)'),
-                        y=alt.Y('count()', title='Number of Studios'),
-                        color=alt.value('#bcbd22')
-                    ).properties(height=300, title='Build-Out Cost per Sq Ft')
-                    
-                    st.altair_chart(chart, use_container_width=True)
-            
-            # Metrics
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                median_total = df_buildout['buildout_cost_total'].median()
-                st.metric("Median Total Cost", f"${median_total:,.0f}")
-            with col2:
-                if 'cost_per_sqft' in df_buildout.columns:
-                    median_sqft = df_buildout['cost_per_sqft'].median()
-                    st.metric("Median per Sq Ft", f"${median_sqft:.2f}")
-            with col3:
-                q75 = df_buildout['buildout_cost_total'].quantile(0.75)
-                st.metric("75th Percentile", f"${q75:,.0f}")
-            
-            if highlight_studio and highlight_studio in df_buildout['studio_name'].values:
-                your_cost = df_buildout[df_buildout['studio_name'] == highlight_studio]['buildout_cost_total'].iloc[0]
-                st.info(f"Your build-out cost: ${your_cost:,.0f}")
-
-
-def show_member_retention(df, highlight_studio=None):
-    """Section 13: Member Retention Deep Dive"""
-    
-    st.header("🔄 Section 13: Member Retention")
-    
-    # Q25: Why do members leave?
-    st.subheader("Q25: Why do members leave?")
+    st.subheader("Q60: Why do members leave?")
     
     if 'top_churn_reasons' in df.columns:
-        # Extract all churn reasons
         all_reasons = []
         for reasons in df['top_churn_reasons'].dropna():
             parsed = _parse_jsonish(reasons)
@@ -1355,54 +1902,13 @@ def show_member_retention(df, highlight_studio=None):
                 x=alt.X('Count:Q'),
                 tooltip=['Reason', 'Count'],
                 color=alt.value('#d62728')
-            ).properties(height=350, title='Top Reasons for Member Churn')
+            ).properties(height=350)
             
             st.altair_chart(chart, use_container_width=True)
-            
-            st.caption("Understanding why members leave can help improve retention strategies")
     
-    # Q23: Member composition
+    # Q61: Churn by studio size
     st.markdown("---")
-    st.subheader("Q26: What's typical member composition?")
-    
-    if 'member_pcts' in df.columns:
-        # Extract member percentages and average them
-        member_data = []
-        for idx, row in df.iterrows():
-            pct_dict = _parse_jsonish(row['member_pcts'])
-            if isinstance(pct_dict, dict):
-                for member_type, pct in pct_dict.items():
-                    if isinstance(pct, (int, float)) and pct > 0:
-                        member_data.append({'type': member_type, 'percentage': pct})
-        
-        if member_data:
-            mem_df = pd.DataFrame(member_data)
-            avg_mem = mem_df.groupby('type')['percentage'].mean().reset_index()
-            avg_mem.columns = ['Member Type', 'Average %']
-            
-            # Clean names
-            name_map = {
-                'hobbyist': 'Hobbyists\n(1x/week or less)',
-                'regular': 'Regular Artists\n(2-3x/week)',
-                'production': 'Production Potters\n(4+x/week)',
-                'seasonal': 'Seasonal/Occasional'
-            }
-            avg_mem['Member Type'] = avg_mem['Member Type'].map(
-                lambda x: name_map.get(x, x.title())
-            )
-            
-            fig = px.pie(avg_mem, values='Average %', names='Member Type',
-                        title='Average Member Composition Across Studios',
-                        height=400,
-                        color_discrete_sequence=px.colors.qualitative.Set3)
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.caption("Most studios have a mix of casual hobbyists and dedicated regular artists")
-    
-    # Q24 enhanced: Churn vs member count
-    st.markdown("---")
-    st.subheader("Q27: Does churn rate vary by studio size?")
+    st.subheader("Q61: Does churn rate vary by studio size?")
     
     df_churn_size = df.copy()
     df_churn_size['monthly_churn'] = pd.to_numeric(df_churn_size['monthly_churn'], errors='coerce')
@@ -1411,6 +1917,8 @@ def show_member_retention(df, highlight_studio=None):
                                    df_churn_size['current_members'].notna()]
     
     if len(df_churn_size) > 0:
+        fig = go.Figure()
+        
         if highlight_studio and highlight_studio in df_churn_size['studio_name'].values:
             df_h = df_churn_size[df_churn_size['studio_name'] == highlight_studio]
             df_o = df_churn_size[df_churn_size['studio_name'] != highlight_studio]
@@ -1418,16 +1926,12 @@ def show_member_retention(df, highlight_studio=None):
             df_h = pd.DataFrame()
             df_o = df_churn_size
         
-        fig = go.Figure()
-        
         fig.add_trace(go.Scatter(
             x=df_o['current_members'],
             y=df_o['monthly_churn'],
             mode='markers',
             name='Other Studios',
-            marker=dict(size=10, color='#8c564b', opacity=0.6),
-            text=df_o['studio_name'],
-            hovertemplate='<b>Studio %{text}</b><br>Members: %{x}<br>Churn: %{y:.1f}%<extra></extra>'
+            marker=dict(size=10, color='#8c564b', opacity=0.6)
         ))
         
         if not df_h.empty:
@@ -1436,14 +1940,12 @@ def show_member_retention(df, highlight_studio=None):
                 y=df_h['monthly_churn'],
                 mode='markers',
                 name='Your Studio',
-                marker=dict(size=18, color='#FF4B4B', symbol='star'),
-                hovertemplate='<b>YOUR STUDIO</b><br>Members: %{x}<br>Churn: %{y:.1f}%<extra></extra>'
+                marker=dict(size=18, color='#FF4B4B', symbol='star')
             ))
         
-        # Add median line
         median_churn = df_churn_size['monthly_churn'].median()
         fig.add_hline(y=median_churn, line_dash="dash", line_color="gray",
-                     annotation_text=f"Median: {median_churn:.1f}%", annotation_position="right")
+                     annotation_text=f"Median: {median_churn:.1f}%")
         
         fig.update_layout(
             xaxis_title='Current Members',
@@ -1454,313 +1956,53 @@ def show_member_retention(df, highlight_studio=None):
         st.plotly_chart(fig, use_container_width=True)
 
 
-def show_revenue_optimization(df, highlight_studio=None):
-    """Section 14: Revenue Mix Optimization"""
-    
-    st.header("💡 Section 14: Revenue Optimization")
-    
-    # Q14: Revenue mix by profitability
-    st.subheader("Q28: What revenue mix do profitable studios have?")
-    
-    if 'revenue_pcts' in df.columns and 'profitability_status' in df.columns:
-        # Extract revenue data by profitability status
-        revenue_by_profit = []
-        for idx, row in df.iterrows():
-            rev_dict = _parse_jsonish(row['revenue_pcts'])
-            profit_status = row['profitability_status']
-            
-            if isinstance(rev_dict, dict) and profit_status in ['Profitable', 'Breaking even', 'Operating at loss']:
-                for source, pct in rev_dict.items():
-                    if isinstance(pct, (int, float)) and pct > 0:
-                        revenue_by_profit.append({
-                            'source': source,
-                            'percentage': pct,
-                            'status': profit_status
-                        })
-        
-        if revenue_by_profit:
-            rev_df = pd.DataFrame(revenue_by_profit)
-            
-            # Calculate average by source and status
-            avg_rev = rev_df.groupby(['status', 'source'])['percentage'].mean().reset_index()
-            
-            # Clean names
-            name_map = {
-                'membership': 'Membership',
-                'clay': 'Clay Sales',
-                'firing': 'Firing Fees',
-                'classes': 'Classes',
-                'events': 'Events',
-                'other': 'Other'
-            }
-            avg_rev['source'] = avg_rev['source'].map(lambda x: name_map.get(x, x.title()))
-            
-            # Create grouped bar chart
-            fig = px.bar(avg_rev, 
-                        x='source', 
-                        y='percentage',
-                        color='status',
-                        barmode='group',
-                        title='Revenue Mix by Profitability Status',
-                        labels={'percentage': 'Average %', 'source': 'Revenue Source'},
-                        height=400)
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.caption("Profitable studios tend to have more diversified revenue streams")
-    
-    # Q7: Does having multiple tiers increase revenue?
-    st.markdown("---")
-    st.subheader("Q29: Does having multiple tiers increase revenue?")
-    
-    if 'tier_structure' in df.columns and 'monthly_revenue_range' in df.columns:
-        tier_revenue = df[df['tier_structure'].notna() & df['monthly_revenue_range'].notna()].copy()
-        
-        if len(tier_revenue) > 0:
-            # Count by tier structure and revenue range
-            tier_rev_counts = tier_revenue.groupby(['tier_structure', 'monthly_revenue_range']).size().reset_index(name='count')
-            
-            # Order revenue ranges
-            revenue_order = [
-                "Under $5,000",
-                "$5,000-$10,000",
-                "$10,000-$20,000",
-                "$20,000-$35,000",
-                "$35,000-$50,000",
-                "$50,000-$75,000",
-                "Over $75,000",
-                "Prefer not to say"
-            ]
-            
-            tier_rev_counts['monthly_revenue_range'] = pd.Categorical(
-                tier_rev_counts['monthly_revenue_range'],
-                categories=revenue_order,
-                ordered=True
-            )
-            
-            # Use altair instead for more reliable rendering
-            chart = alt.Chart(tier_rev_counts).mark_bar().encode(
-                x=alt.X('tier_structure:N', title='Tier Structure'),
-                y=alt.Y('count:Q', title='Number of Studios'),
-                color=alt.Color('monthly_revenue_range:N', 
-                              title='Revenue Range',
-                              scale=alt.Scale(scheme='category20')),
-                tooltip=['tier_structure', 'monthly_revenue_range', 'count']
-            ).properties(height=400, title='Revenue Ranges by Tier Structure')
-            
-            st.altair_chart(chart, use_container_width=True)
-            
-            st.caption("Analysis shows whether multi-tier pricing correlates with higher revenue")
+# ===========================================================================
+# HELPER FUNCTION - _parse_jsonish
+# ===========================================================================
 
-
-def show_profitability_patterns(df, highlight_studio=None):
-    """Section 15: Profitability Analysis"""
-    
-    st.header("📈 Section 15: Profitability Patterns")
-    
-    # Q13: Time to profitability
-    st.subheader("Q30: How long until studios become profitable?")
-    
-    if 'time_to_profitability' in df.columns:
-        time_counts = df['time_to_profitability'].value_counts().reset_index()
-        time_counts.columns = ['Time to Profit', 'Count']
-        
-        # Order logically
-        time_order = [
-            "Under 6 months",
-            "6-12 months",
-            "12-18 months",
-            "18-24 months",
-            "Over 24 months",
-            "Not yet profitable"
-        ]
-        
-        time_counts['Time to Profit'] = pd.Categorical(
-            time_counts['Time to Profit'],
-            categories=time_order,
-            ordered=True
-        )
-        time_counts = time_counts.sort_values('Time to Profit')
-        
-        if highlight_studio and highlight_studio in df['studio_name'].values:
-            user_time = df[df['studio_name'] == highlight_studio]['time_to_profitability'].iloc[0]
-            time_counts['is_user'] = time_counts['Time to Profit'] == user_time
-        else:
-            time_counts['is_user'] = False
-        
-        chart = alt.Chart(time_counts).mark_bar().encode(
-            y=alt.Y('Time to Profit:N', sort=time_order),
-            x=alt.X('Count:Q'),
-            color=alt.condition(
-                alt.datum.is_user == True,
-                alt.value('#FF4B4B'),
-                alt.value('#2ca02c')
-            ),
-            tooltip=['Time to Profit', 'Count']
-        ).properties(height=300)
-        
-        st.altair_chart(chart, use_container_width=True)
-    
-    # Rent burden analysis
-    st.markdown("---")
-    st.subheader("Q31: What's a sustainable rent burden?")
-    
-    # Calculate rent as % of estimated revenue for profitable studios
-    df_rent_burden = df.copy()
-    df_rent_burden['rent'] = pd.to_numeric(df_rent_burden['rent'], errors='coerce')
-    df_rent_burden['current_members'] = pd.to_numeric(df_rent_burden['current_members'], errors='coerce')
-    df_rent_burden['tier1_price'] = pd.to_numeric(df_rent_burden['tier1_price'], errors='coerce')
-    
-    # Estimate revenue as members * tier1_price
-    df_rent_burden['est_membership_revenue'] = (df_rent_burden['current_members'] * 
-                                                df_rent_burden['tier1_price'])
-    df_rent_burden['rent_pct'] = (df_rent_burden['rent'] / 
-                                  df_rent_burden['est_membership_revenue'] * 100)
-    
-    df_rent_burden = df_rent_burden[df_rent_burden['rent_pct'].notna() & 
-                                   (df_rent_burden['rent_pct'] > 0) &
-                                   (df_rent_burden['rent_pct'] < 200)]  # Filter outliers
-    
-    if len(df_rent_burden) > 0 and 'profitability_status' in df_rent_burden.columns:
-        # Box plot by profitability
-        df_plot = df_rent_burden[df_rent_burden['profitability_status'].isin(
-            ['Profitable', 'Breaking even', 'Operating at loss'])]
-        
-        if len(df_plot) > 0:
-            fig = px.box(df_plot,
-                        x='profitability_status',
-                        y='rent_pct',
-                        title='Rent as % of Membership Revenue by Profitability',
-                        labels={'rent_pct': 'Rent (% of Membership Revenue)',
-                               'profitability_status': 'Profitability Status'},
-                        height=400)
-            
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Calculate medians
-            profitable = df_plot[df_plot['profitability_status'] == 'Profitable']
-            if len(profitable) > 0:
-                median_prof = profitable['rent_pct'].median()
-                st.caption(f"Profitable studios: Median rent is {median_prof:.0f}% of membership revenue")
-            
-            if highlight_studio and highlight_studio in df_rent_burden['studio_name'].values:
-                your_pct = df_rent_burden[df_rent_burden['studio_name'] == highlight_studio]['rent_pct'].iloc[0]
-                st.info(f"Your rent burden: {your_pct:.0f}% of estimated membership revenue")
-
-
-def show_kiln_analysis(df, highlight_studio=None):
-    """Section 16: Kiln Utilization & Efficiency"""
-    
-    st.header("🔥 Section 16: Kiln Analysis")
-    
-    # Q19: How often are kilns actually used?
-    st.subheader("Q32: How often are kilns actually used?")
-    
-    if 'kiln_utilization' in df.columns:
-        df_kiln_util = df.copy()
-        df_kiln_util['kiln_utilization'] = pd.to_numeric(df_kiln_util['kiln_utilization'], 
-                                                         errors='coerce')
-        df_kiln_util = df_kiln_util[df_kiln_util['kiln_utilization'].notna()]
-        
-        if len(df_kiln_util) > 0:
-            # Distribution
-            chart = alt.Chart(df_kiln_util).mark_bar().encode(
-                x=alt.X('kiln_utilization:Q', bin=alt.Bin(step=10),
-                       title='Kiln Utilization (%)'),
-                y=alt.Y('count()', title='Number of Studios'),
-                color=alt.value('#ff7f0e')
-            ).properties(height=300)
-            
-            st.altair_chart(chart, use_container_width=True)
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                median_util = df_kiln_util['kiln_utilization'].median()
-                st.metric("Median Utilization", f"{median_util:.0f}%")
-            with col2:
-                high_util = (df_kiln_util['kiln_utilization'] >= 80).sum() / len(df_kiln_util) * 100
-                st.metric("High Utilization (≥80%)", f"{high_util:.0f}%")
-            with col3:
-                low_util = (df_kiln_util['kiln_utilization'] < 50).sum() / len(df_kiln_util) * 100
-                st.metric("Low Utilization (<50%)", f"{low_util:.0f}%")
-    
-    # Kiln count vs members (improved - discrete integers)
-    st.markdown("---")
-    st.subheader("Q33: Optimal kiln count by studio size")
-    
-    df_kiln_count = df.copy()
-    df_kiln_count['num_kilns'] = pd.to_numeric(df_kiln_count['num_kilns'], errors='coerce')
-    df_kiln_count['current_members'] = pd.to_numeric(df_kiln_count['current_members'], errors='coerce')
-    df_kiln_count = df_kiln_count[df_kiln_count['num_kilns'].notna() & 
-                                   df_kiln_count['current_members'].notna()]
-    
-    if len(df_kiln_count) > 0:
-        # Create bins for member count to show patterns
-        df_kiln_count['member_range'] = pd.cut(df_kiln_count['current_members'],
-                                               bins=[0, 25, 50, 75, 100, 200],
-                                               labels=['0-25', '26-50', '51-75', '76-100', '100+'])
-        
-        # Box plot by member range
-        fig = px.box(df_kiln_count,
-                    x='member_range',
-                    y='num_kilns',
-                    title='Number of Kilns by Studio Size',
-                    labels={'member_range': 'Member Count', 'num_kilns': 'Number of Kilns'},
-                    height=400)
-        
-        # Force integer y-axis
-        fig.update_yaxes(dtick=1)
-        
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Calculate members per kiln
-        df_kiln_count['members_per_kiln'] = (df_kiln_count['current_members'] / 
-                                             df_kiln_count['num_kilns'])
-        median_per_kiln = df_kiln_count['members_per_kiln'].median()
-        
-        st.caption(f"Median ratio: {median_per_kiln:.0f} members per kiln")
-        
-        if highlight_studio and highlight_studio in df_kiln_count['studio_name'].values:
-            your_kilns = df_kiln_count[df_kiln_count['studio_name'] == highlight_studio]['num_kilns'].iloc[0]
-            your_members = df_kiln_count[df_kiln_count['studio_name'] == highlight_studio]['current_members'].iloc[0]
-            your_ratio = your_members / your_kilns if your_kilns > 0 else 0
-            
-            st.info(f"""
-            Your setup: {int(your_kilns)} kiln(s) for {int(your_members)} members
-            - Ratio: {your_ratio:.0f} members/kiln ({'above' if your_ratio > median_per_kiln else 'below'} median)
-            """)
-    
-    # Firing frequency from kilns data
-    st.markdown("---")
-    st.subheader("Q34: How many firings per month?")
-    
-    if 'kilns' in df.columns:
-        # Extract firings from kilns JSON
-        all_firings = []
-        for idx, row in df.iterrows():
-            kilns_data = _parse_jsonish(row['kilns'])
-            if isinstance(kilns_data, list):
-                for kiln in kilns_data:
-                    if isinstance(kiln, dict) and 'firings' in kiln:
-                        try:
-                            firings = int(kiln['firings'])
-                            all_firings.append(firings)
-                        except (ValueError, TypeError):
-                            pass
-        
-        if all_firings:
-            firings_series = pd.Series(all_firings)
-            
-            chart = alt.Chart(pd.DataFrame({'firings': all_firings})).mark_bar().encode(
-                x=alt.X('firings:Q', bin=alt.Bin(step=2), title='Firings per Month'),
-                y=alt.Y('count()', title='Number of Kilns'),
-                color=alt.value('#d62728')
-            ).properties(height=300, title='Firing Frequency Distribution')
-            
-            st.altair_chart(chart, use_container_width=True)
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Median Firings/Month", f"{firings_series.median():.0f}")
-            with col2:
-                st.metric("Average Firings/Month", f"{firings_series.mean():.1f}")
+def _parse_jsonish(x):
+    """Best-effort parser for survey cells that may contain JSON, Python-literals,
+    or comma-separated strings. Returns lists/dicts when possible, else the original.
+    """
+    if x is None:
+        return None
+    # pass through native structures
+    if isinstance(x, (list, dict)):
+        return x
+    if isinstance(x, str):
+        s = x.strip()
+        if not s:
+            return None
+        # common spreadsheet artifacts
+        s = s.replace("\u200b", "")  # zero-widths
+        s = s.replace("\ufeff", "")  # BOM
+        # try strict JSON first
+        try:
+            return json.loads(s)
+        except json.JSONDecodeError:
+            pass
+        # try python literal (handles single quotes, True/False/None, tuples, etc.)
+        try:
+            val = ast.literal_eval(s)
+            if isinstance(val, (list, dict, tuple, set)):
+                return list(val) if not isinstance(val, dict) else val
+        except Exception:
+            pass
+        # handle simple comma-separated values like "A, B, C"
+        if ("," in s) and not re.search(r"[\[\]\{\}]", s):
+            return [part.strip() for part in s.split(",") if part.strip()]
+        # handle multiple concatenated JSON objects/arrays e.g. "['A'] ['B']"
+        chunks = re.findall(r"(\[[^\]]*\]|\{[^}]*\})", s)
+        if len(chunks) > 1:
+            out = []
+            for ch in chunks:
+                try:
+                    v = json.loads(ch)
+                    out.extend(v if isinstance(v, list) else [v])
+                except Exception:
+                    continue
+            if out:
+                return out
+        # fall back to original string
+        return s
+    return x
